@@ -82,6 +82,23 @@ class TerminalTrainer {
             }
         });
 
+        // Горячие клавиши F1 (Подсказка 1), F2 (Подсказка 2), F3 (Показать ответ)
+        window.addEventListener('keydown', (e) => {
+            const secTerm = document.getElementById('sec-terminal');
+            if (!secTerm || !secTerm.classList.contains('active')) return;
+
+            if (e.key === 'F1') {
+                e.preventDefault();
+                this.showHint(1);
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                this.showHint(2);
+            } else if (e.key === 'F3') {
+                e.preventDefault();
+                this.showAnswer();
+            }
+        });
+
         // Кнопка запуска (для мобилок)
         document.getElementById('btn-term-run')?.addEventListener('click', () => {
             this.handleCommand(this.termInput.value);
@@ -175,18 +192,15 @@ class TerminalTrainer {
 
     loadCurrentTask() {
         if (!this.filteredTasks || this.filteredTasks.length === 0) {
-            if (this.taskTitle) this.taskTitle.textContent = "Нет заданий в этой категории";
-            if (this.taskDesc) this.taskDesc.textContent = "";
             return;
         }
 
         const task = this.filteredTasks[this.currentTaskIndex];
         const topic = APP_DATA.topics.find(t => t.id === task.topicId);
 
-        this.taskTitle.textContent = `Задание #${this.currentTaskIndex + 1}: ${task.host.toUpperCase()}`;
-        this.taskDesc.textContent = task.task;
-        this.taskBadge.textContent = topic ? topic.badge : `Тема ${task.topicId}`;
-        this.taskCounter.textContent = `${this.currentTaskIndex + 1} / ${this.filteredTasks.length}`;
+        const winHost = document.getElementById('win-term-userhost');
+        if (winHost) winHost.textContent = `${task.host === 'hq-cli' ? 'user' : 'root'}@${task.host}:~`;
+
         this.termPrompt.textContent = task.prompt;
 
         this.hintBox.classList.add('hidden');
@@ -197,15 +211,17 @@ class TerminalTrainer {
         const isDone = this.completedTasks.has(task.id);
 
         this.termOutput.innerHTML = `
-            <div class="term-line sys-msg">
-                <span class="text-cyan">[Стенд Proxmox VE]</span> Виртуальная машина: <b class="text-green">${task.host.toUpperCase()}</b>
-                ${isDone ? '<span class="text-success font-bold ml-2">✔ (Выполнено)</span>' : ''}
+            <div class="term-task-banner">
+                <div class="term-task-head">
+                    <span><b>[+] ЗАДАНИЕ #${this.currentTaskIndex + 1}/${this.filteredTasks.length}</b> | ВМ: <b class="text-green">${task.host.toUpperCase()}</b> | <span class="text-cyan">${topic ? topic.badge : ''}</span></span>
+                    ${isDone ? '<span class="text-green font-bold">✔ ВЫПОЛНЕНО</span>' : ''}
+                </div>
+                <div class="term-task-goal">
+                    <b>[i] Цель:</b> ${task.task}
+                </div>
             </div>
             <div class="term-line sys-msg">
-                <span class="text-yellow">Цель:</span> ${task.task}
-            </div>
-            <div class="term-line sys-msg text-muted">
-                Введите команду и нажмите <b>Enter</b>. Доступны подсказки кнопками вверху.
+                Введите команду в строку ниже и нажмите <b>Enter</b> (или <b>↵</b>). Нажмите <b>F1</b>/<b>F2</b> для подсказок.
             </div>
         `;
 
@@ -299,9 +315,9 @@ class TerminalTrainer {
         const task = this.filteredTasks[this.currentTaskIndex];
         this.hintBox.classList.remove('hidden');
         if (level === 1) {
-            this.hintBox.innerHTML = `<div class="alert alert-info"><b>Подсказка 1:</b> ${task.hint1}</div>`;
+            this.hintBox.innerHTML = `<div class="text-cyan"><b>💡 [F1 Наводящая мысль]:</b> ${task.hint1}</div>`;
         } else {
-            this.hintBox.innerHTML = `<div class="alert alert-warning"><b>Подсказка 2:</b> <code>${this.escapeHtml(task.hint2)}</code></div>`;
+            this.hintBox.innerHTML = `<div class="text-yellow"><b>🔍 [F2 Шаблон синтаксиса (подставьте параметры сами)]:</b> <code>${this.escapeHtml(task.hint2)}</code></div>`;
         }
     }
 
@@ -310,9 +326,9 @@ class TerminalTrainer {
         const correct = task.correctAnswers[0];
         this.hintBox.classList.remove('hidden');
         this.hintBox.innerHTML = `
-            <div class="alert alert-warning">
-                <b>Правильный ответ:</b> <code>${this.escapeHtml(correct)}</code>
-                <button class="btn btn-sm btn-outline ml-2" onclick="terminalTrainer.pasteAnswer('${this.escapeQuotes(correct)}')">Вставить в терминал</button>
+            <div class="text-green">
+                <b>🔑 [F3 Готовый ответ]:</b> <code>${this.escapeHtml(correct)}</code>
+                <button class="btn btn-sm btn-outline ml-2" onclick="terminalTrainer.pasteAnswer('${this.escapeQuotes(correct)}')">📋 Вставить в терминал</button>
             </div>
         `;
     }

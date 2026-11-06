@@ -79,6 +79,23 @@ class TeacherExamTrainer {
             }
         });
 
+        // Горячие клавиши F1 (Подсказка), F2 (Показать команду), F3 (Вставить)
+        window.addEventListener('keydown', (e) => {
+            const secTeacher = document.getElementById('sec-teacher');
+            if (!secTeacher || !secTeacher.classList.contains('active')) return;
+
+            if (e.key === 'F1') {
+                e.preventDefault();
+                this.showHint();
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                this.showAnswer();
+            } else if (e.key === 'F3') {
+                e.preventDefault();
+                this.pasteCurrentAnswer();
+            }
+        });
+
         // Кнопка запуска (для мобилок)
         document.getElementById('teacher-btn-run')?.addEventListener('click', () => {
             this.handleCommand(this.termInput.value);
@@ -243,8 +260,8 @@ class TeacherExamTrainer {
         const task = this.tasks[this.currentTaskIndex];
         this.hintBox.classList.remove('hidden');
         this.hintBox.innerHTML = `
-            <div class="alert alert-warning">
-                <b>${task.hint1}</b>
+            <div class="text-yellow">
+                <b>💡 [F1 Наводка экзаменатора]:</b> ${task.hint1}
             </div>
         `;
     }
@@ -254,9 +271,9 @@ class TeacherExamTrainer {
         const correct = task.correctAnswers[0];
         this.hintBox.classList.remove('hidden');
         this.hintBox.innerHTML = `
-            <div class="alert alert-info">
-                <b>Правильная команда:</b> <code>${this.escapeHtml(correct)}</code>
-                <button class="btn btn-sm btn-outline ml-2" onclick="teacherTrainer.pasteAnswer('${this.escapeQuotes(correct)}')">Вставить в консоль</button>
+            <div class="text-green">
+                <b>🔑 [F2 Ответ]:</b> <code>${this.escapeHtml(correct)}</code>
+                <button class="btn btn-sm btn-outline ml-2" onclick="teacherTrainer.pasteAnswer('${this.escapeQuotes(correct)}')">📋 Вставить в консоль</button>
             </div>
         `;
     }

@@ -166,428 +166,1151 @@ const APP_DATA = {
 
     // 5. Задания тренажёра команд (для интерактивной консоли)
     commandTasks: [
-        // --- Тема 2 ---
         {
-            id: "cmd_2_1",
-            topicId: 2,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Задайте полное доменное имя (FQDN) isp.au-team.irpo на виртуальной машине ISP",
-            correctAnswers: [
-                "hostnamectl set-hostname isp.au-team.irpo",
-                "hostnamectl set-hostname isp.au-team.irpo; exec bash"
-            ],
-            hint1: "Используйте утилиту hostnamectl со специальным параметром set-hostname",
-            hint2: "hostnamectl set-hostname isp.au-team.irpo",
-            explanation: "Команда `hostnamectl set-hostname <FQDN>` прописывает статическое доменное имя в `/etc/hostname` и применяет его немедленно."
+                "id": "cmd_2_1",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Задайте полное доменное имя (FQDN) isp.au-team.irpo на виртуальной машине ISP с перезапуском сессии bash",
+                "correctAnswers": [
+                        "hostnamectl set-hostname isp.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname isp.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname isp.au-team.irpo"
+                ],
+                "hint1": "Подумайте, какая встроенная утилита systemd отвечает за управление статическим сетевым именем хоста в современных дистрибутивах Linux.",
+                "hint2": "Шаблон синтаксиса: команда set-hostname <полное_имя_машины.домен>; exec bash",
+                "explanation": "hostnamectl set-hostname записывает FQDN в /etc/hostname и применяет его немедленно, а exec bash обновляет переменные оболочки."
         },
         {
-            id: "cmd_2_2",
-            topicId: 2,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Задайте FQDN hq-rtr.au-team.irpo на маршрутизаторе HQ-RTR",
-            correctAnswers: [
-                "hostnamectl set-hostname hq-rtr.au-team.irpo",
-                "hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash"
-            ],
-            hint1: "Синтаксис: hostnamectl set-hostname <имя>",
-            hint2: "hostnamectl set-hostname hq-rtr.au-team.irpo",
-            explanation: "Устанавливает FQDN для маршрутизатора главного офиса."
+                "id": "cmd_2_2",
+                "topicId": 2,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Задайте FQDN hq-rtr.au-team.irpo на маршрутизаторе HQ-RTR с перезапуском bash",
+                "correctAnswers": [
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo"
+                ],
+                "hint1": "Используется та же утилита управления именем хоста, что и на ISP, но указывается имя маршрутизатора HQ.",
+                "hint2": "Формат вызова: команда set-hostname <имя_маршрутизатора.домен>; exec bash",
+                "explanation": "Задаёт FQDN для главного маршрутизатора компании."
         },
         {
-            id: "cmd_2_3",
-            topicId: 2,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Установите часовой пояс Барнаула (Asia/Barnaul) через timedatectl",
-            correctAnswers: [
-                "timedatectl set-timezone Asia/Barnaul"
-            ],
-            hint1: "Используйте timedatectl с аргументом set-timezone",
-            hint2: "timedatectl set-timezone Asia/Barnaul",
-            explanation: "Утилита `timedatectl` настраивает системный часовой пояс, обновляя симлинк `/etc/localtime` на `/usr/share/zoneinfo/Asia/Barnaul`."
+                "id": "cmd_2_3",
+                "topicId": 2,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Задайте FQDN br-rtr.au-team.irpo на маршрутизаторе филиала BR-RTR",
+                "correctAnswers": [
+                        "hostnamectl set-hostname br-rtr.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname br-rtr.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname br-rtr.au-team.irpo"
+                ],
+                "hint1": "Укажите доменное имя для маршрутизатора филиала Branch Router.",
+                "hint2": "Формат: команда set-hostname <имя_хоста>; exec bash",
+                "explanation": "Задаёт FQDN маршрутизатора филиала BR."
         },
         {
-            id: "cmd_2_4",
-            topicId: 2,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Проверьте текущее состояние системного времени и часового пояса",
-            correctAnswers: [
-                "timedatectl status",
-                "timedatectl",
-                "timedatectl | grep \"Time zone\""
-            ],
-            hint1: "Команда без параметров или со словом status",
-            hint2: "timedatectl status",
-            explanation: "`timedatectl status` выводит локальное время, время UTC, RTC и активную таймзону."
-        },
-
-        // --- Тема 3 ---
-        {
-            id: "cmd_3_1",
-            topicId: 3,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Выведите компактный цветной список сетевых интерфейсов и их IP-адресов",
-            correctAnswers: [
-                "ip -br -c a",
-                "ip -br -c addr",
-                "ip -br -c addr show",
-                "ip -br a",
-                "ip a"
-            ],
-            hint1: "Используйте флаги -br (brief) и -c (color) у команды ip a",
-            hint2: "ip -br -c a",
-            explanation: "`ip -br -c a` — самая наглядная команда для проверки состояния линков (UP/DOWN) и назначенных IPv4/IPv6."
+                "id": "cmd_2_4",
+                "topicId": 2,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Задайте FQDN hq-srv.au-team.irpo на сервере HQ-SRV",
+                "correctAnswers": [
+                        "hostnamectl set-hostname hq-srv.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname hq-srv.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname hq-srv.au-team.irpo"
+                ],
+                "hint1": "Используйте ту же команду управления hostname для сервера главного офиса.",
+                "hint2": "Формат: команда set-hostname <имя_сервера.домен>; exec bash",
+                "explanation": "Задаёт FQDN главного сервера."
         },
         {
-            id: "cmd_3_2",
-            topicId: 3,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Назначьте IP-адрес 172.16.1.2/28 интерфейсу enp7s1 через запись в файл ipv4address подсистемы /etc/net",
-            correctAnswers: [
-                "echo '172.16.1.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
-                "echo 172.16.1.2/28 > /etc/net/ifaces/enp7s1/ipv4address",
-                "echo \"172.16.1.2/28\" > /etc/net/ifaces/enp7s1/ipv4address"
-            ],
-            hint1: "Запишите строку через echo '...' > /etc/net/ifaces/enp7s1/ipv4address",
-            hint2: "echo '172.16.1.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
-            explanation: "В ОС «Альт» каждый интерфейс имеет свою директорию, а адреса хранятся в файле `ipv4address`."
+                "id": "cmd_2_5",
+                "topicId": 2,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Задайте FQDN br-srv.au-team.irpo на сервере филиала BR-SRV",
+                "correctAnswers": [
+                        "hostnamectl set-hostname br-srv.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname br-srv.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname br-srv.au-team.irpo"
+                ],
+                "hint1": "Укажите доменное имя для сервера филиала.",
+                "hint2": "Формат: команда set-hostname <имя_хоста>; exec bash",
+                "explanation": "Задаёт FQDN сервера филиала."
         },
         {
-            id: "cmd_3_3",
-            topicId: 3,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Укажите шлюз по умолчанию 172.16.1.1 для интерфейса enp7s1 в файле ipv4route",
-            correctAnswers: [
-                "echo 'default via 172.16.1.1' > /etc/net/ifaces/enp7s1/ipv4route",
-                "echo default via 172.16.1.1 > /etc/net/ifaces/enp7s1/ipv4route",
-                "echo \"default via 172.16.1.1\" > /etc/net/ifaces/enp7s1/ipv4route"
-            ],
-            hint1: "Синтаксис: default via <IP> в файл ipv4route",
-            hint2: "echo 'default via 172.16.1.1' > /etc/net/ifaces/enp7s1/ipv4route",
-            explanation: "Файл `ipv4route` в папке интерфейса задает маршруты через этот интерфейс (синтаксис `ip route`)."
+                "id": "cmd_2_6",
+                "topicId": 2,
+                "host": "hq-cli",
+                "prompt": "root@hq-cli:~# ",
+                "task": "Задайте FQDN hq-cli.au-team.irpo на рабочей станции клиента HQ-CLI",
+                "correctAnswers": [
+                        "hostnamectl set-hostname hq-cli.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname hq-cli.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname hq-cli.au-team.irpo"
+                ],
+                "hint1": "Имя хоста клиента главного офиса в доменной зоне стенда.",
+                "hint2": "Формат: команда set-hostname <имя_хоста>; exec bash",
+                "explanation": "Задаёт FQDN клиентской машины."
         },
         {
-            id: "cmd_3_4",
-            topicId: 3,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Перезапустите сетевую службу в ОС «Альт» для применения настроек",
-            correctAnswers: [
-                "systemctl restart network",
-                "service network restart"
-            ],
-            hint1: "systemctl restart ...",
-            hint2: "systemctl restart network",
-            explanation: "В ОС «Альт» служба называется `network` (а не networking или systemd-networkd)."
+                "id": "cmd_2_7",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Проверьте текущее полное доменное имя (FQDN) машины с помощью утилиты hostname",
+                "correctAnswers": [
+                        "hostname -f",
+                        "hostname --fqdn"
+                ],
+                "hint1": "Вспомните специальный короткий ключ утилиты hostname для вывода именно полного имени (full/fqdn).",
+                "hint2": "Синтаксис: hostname -<буква_ключа>",
+                "explanation": "Флаг -f (или --fqdn) заставляет команду вернуть полное доменное имя вместо короткого."
         },
         {
-            id: "cmd_3_5",
-            topicId: 3,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Отправьте ровно 3 ICMP-пакета (ping) на шлюз ISP (172.16.1.1)",
-            correctAnswers: [
-                "ping -c 3 172.16.1.1"
-            ],
-            hint1: "Используйте ключ -c 3",
-            hint2: "ping -c 3 172.16.1.1",
-            explanation: "Флаг `-c 3` ограничивает количество эхо-запросов тремя пакетами."
-        },
-
-        // --- Тема 4 ---
-        {
-            id: "cmd_4_1",
-            topicId: 4,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Скопируйте конфигурационную папку интерфейса enp7s1 для создания VLAN 100 (enp7s2.100)",
-            correctAnswers: [
-                "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.100",
-                "cp -r enp7s1 enp7s2.100",
-                "cp -a /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.100"
-            ],
-            hint1: "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.100",
-            hint2: "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.100",
-            explanation: "Быстрый способ создать интерфейс в `/etc/net` — рекурсивно скопировать шаблонный интерфейс."
+                "id": "cmd_2_8",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Обновите кэш списков пакетов в пакетном менеджере ОС «Альт»",
+                "correctAnswers": [
+                        "apt-get update"
+                ],
+                "hint1": "В ОС «Альт» используется классический пакетный менеджер из семейства APT.",
+                "hint2": "Синтаксис: apt-... update",
+                "explanation": "apt-get update синхронизирует локальные индексные файлы с удалёнными репозиториями пакетов."
         },
         {
-            id: "cmd_4_2",
-            topicId: 4,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Назначьте IP-адрес 192.168.1.1/27 для VLAN 100 (enp7s2.100) на HQ-RTR",
-            correctAnswers: [
-                "echo '192.168.1.1/27' > /etc/net/ifaces/enp7s2.100/ipv4address",
-                "echo 192.168.1.1/27 > /etc/net/ifaces/enp7s2.100/ipv4address"
-            ],
-            hint1: "echo '192.168.1.1/27' > ...",
-            hint2: "echo '192.168.1.1/27' > /etc/net/ifaces/enp7s2.100/ipv4address",
-            explanation: "Шлюз серверного сегмента HQ получает адрес `.1` с маской `/27` (до 30 хостов)."
+                "id": "cmd_2_9",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Установите пакет данных о часовых поясах (tzdata) с автоподтверждением (-y)",
+                "correctAnswers": [
+                        "apt-get install tzdata -y",
+                        "apt-get install -y tzdata"
+                ],
+                "hint1": "В минимальных сборках Альт JeOS базы часовых поясов нет, требуется установить пакет с именем tzdata.",
+                "hint2": "Синтаксис: apt-... install <имя_пакета> -y",
+                "explanation": "Пакет tzdata содержит файлы зон временных поясов в каталоге /usr/share/zoneinfo/."
         },
         {
-            id: "cmd_4_3",
-            topicId: 4,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Назначьте IP-адрес 192.168.2.1/28 для клиентского VLAN 200 (enp7s2.200) на HQ-RTR",
-            correctAnswers: [
-                "echo '192.168.2.1/28' > /etc/net/ifaces/enp7s2.200/ipv4address",
-                "echo 192.168.2.1/28 > /etc/net/ifaces/enp7s2.200/ipv4address"
-            ],
-            hint1: "echo '192.168.2.1/28' > /etc/net/ifaces/enp7s2.200/ipv4address",
-            hint2: "echo '192.168.2.1/28' > /etc/net/ifaces/enp7s2.200/ipv4address",
-            explanation: "Шлюз клиентского сегмента HQ получает адрес `.1` с маской `/28` (до 14 хостов)."
+                "id": "cmd_2_10",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Установите часовой пояс Барнаула (Asia/Barnaul) через утилиту timedatectl",
+                "correctAnswers": [
+                        "timedatectl set-timezone Asia/Barnaul"
+                ],
+                "hint1": "Вспомните команду управления системными часами и её подкоманду для смены таймзоны.",
+                "hint2": "Синтаксис: утилита set-timezone <Регион/Город>",
+                "explanation": "timedatectl set-timezone перенаправляет симлинк /etc/localtime на выбранную зону."
         },
         {
-            id: "cmd_4_4",
-            topicId: 4,
-            host: "hq-srv",
-            prompt: "root@hq-srv:~# ",
-            task: "Укажите маршрут по умолчанию через HQ-RTR (192.168.1.1) на интерфейсе enp0s3.100",
-            correctAnswers: [
-                "echo 'default via 192.168.1.1' > /etc/net/ifaces/enp0s3.100/ipv4route",
-                "echo default via 192.168.1.1 > /etc/net/ifaces/enp0s3.100/ipv4route"
-            ],
-            hint1: "Файл ipv4route в папке интерфейса enp0s3.100",
-            hint2: "echo 'default via 192.168.1.1' > /etc/net/ifaces/enp0s3.100/ipv4route",
-            explanation: "HQ-SRV направляет весь нелокальный трафик на HQ-RTR."
-        },
-
-        // --- Тема 5 ---
-        {
-            id: "cmd_5_1",
-            topicId: 5,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Проверьте статус форвардинга IPv4 пакетов в ядре Linux",
-            correctAnswers: [
-                "sysctl net.ipv4.ip_forward",
-                "cat /proc/sys/net/ipv4/ip_forward"
-            ],
-            hint1: "sysctl net.ipv4...",
-            hint2: "sysctl net.ipv4.ip_forward",
-            explanation: "Если значение равно 1 — форвардинг включен, если 0 — ядро отбрасывает транзитные пакеты."
+                "id": "cmd_2_11",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Проверьте статус времени, таймзоны и синхронизации часов",
+                "correctAnswers": [
+                        "timedatectl status",
+                        "timedatectl"
+                ],
+                "hint1": "Используется та же утилита управления временем без параметров или со словом status.",
+                "hint2": "Синтаксис: утилита [status]",
+                "explanation": "timedatectl выводит детальный отчет: локальное время, время UTC, смещение часового пояса и NTP."
         },
         {
-            id: "cmd_5_2",
-            topicId: 5,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Добавьте правило MASQUERADE для NAT на внешнем интерфейсе enp7s1",
-            correctAnswers: [
-                "iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE"
-            ],
-            hint1: "iptables -t nat -A POSTROUTING -o enp7s1 ...",
-            hint2: "iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE",
-            explanation: "Правило подменяет IP источника исходящих пакетов на динамический IP интерфейса enp7s1 при выходе наружу."
+                "id": "cmd_2_12",
+                "topicId": 2,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Выполните комбинированную команду для вывода имени хоста и строки Time zone",
+                "correctAnswers": [
+                        "echo \"=== $(hostname -f) ===\" && timedatectl | grep \"Time zone\"",
+                        "echo '=== $(hostname -f) ===' && timedatectl | grep 'Time zone'"
+                ],
+                "hint1": "Команда состоит из вывода имени машины через echo и фильтрации вывода timedatectl через grep.",
+                "hint2": "Шаблон: echo '=== $(команда) ===' && утилита | grep 'искомая_строка'",
+                "explanation": "Удобная связка из методички для быстрой проверки всех машин перед сдачей этапа."
         },
         {
-            id: "cmd_5_3",
-            topicId: 5,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Сохраните текущие правила iptables в файл /root/iptables_rules",
-            correctAnswers: [
-                "iptables-save > /root/iptables_rules"
-            ],
-            hint1: "iptables-save > ...",
-            hint2: "iptables-save > /root/iptables_rules",
-            explanation: "`iptables-save` делает дамп всех таблиц правил в указанный файл."
+                "id": "cmd_3_1",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Выведите компактный цветной список всех сетевых интерфейсов и назначенных IP-адресов",
+                "correctAnswers": [
+                        "ip -br -c a",
+                        "ip -br -c addr",
+                        "ip -br a",
+                        "ip a"
+                ],
+                "hint1": "Подумайте, какие флаги утилиты ip сокращают вывод до краткой сводки (-br = brief) и раскрашивают статусы UP/DOWN (-c = color).",
+                "hint2": "Синтаксис: ip -<краткий_флаг> -<цветной_флаг> a",
+                "explanation": "ip -br -c a — самая информативная и быстрая команда для диагностики интерфейсов в Linux."
         },
         {
-            id: "cmd_5_4",
-            topicId: 5,
-            host: "isp",
-            prompt: "root@isp:~# ",
-            task: "Просмотрите список правил в таблице NAT",
-            correctAnswers: [
-                "iptables -t nat -L",
-                "iptables -t nat -S",
-                "iptables -t nat -vnL"
-            ],
-            hint1: "iptables -t nat -L",
-            hint2: "iptables -t nat -L",
-            explanation: "Параметр `-t nat` указывает таблицу Network Address Translation, `-L` выводит цепочки."
-        },
-
-        // --- Тема 6 ---
-        {
-            id: "cmd_6_1",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Создайте папку интерфейса для GRE-туннеля gre1 в /etc/net",
-            correctAnswers: [
-                "mkdir /etc/net/ifaces/gre1",
-                "mkdir -p /etc/net/ifaces/gre1"
-            ],
-            hint1: "mkdir /etc/net/ifaces/gre1",
-            hint2: "mkdir /etc/net/ifaces/gre1",
-            explanation: "Для туннеля gre1 в `/etc/net` создается собственная папка конфигурации."
+                "id": "cmd_3_2",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Скопируйте конфигурационный каталог интерфейса enp7s1 в enp7s2 для настройки линка к HQ",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2",
+                        "cp -r enp7s1 enp7s2"
+                ],
+                "hint1": "В подсистеме /etc/net новые интерфейсы создаются рекурсивным копированием существующего каталога интерфейса.",
+                "hint2": "Синтаксис: cp -r <путь_к_исходной_папке> <путь_к_новой_папке>",
+                "explanation": "Копирует базовые файлы options и правила для нового сетевого адаптера."
         },
         {
-            id: "cmd_6_2",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Назначьте IP-адрес 10.0.0.1/30 интерфейсу gre1 на HQ-RTR",
-            correctAnswers: [
-                "echo '10.0.0.1/30' > /etc/net/ifaces/gre1/ipv4address",
-                "echo 10.0.0.1/30 > /etc/net/ifaces/gre1/ipv4address"
-            ],
-            hint1: "echo '10.0.0.1/30' > ...",
-            hint2: "echo '10.0.0.1/30' > /etc/net/ifaces/gre1/ipv4address",
-            explanation: "Адрес `10.0.0.1/30` — первый хост в туннельной подсети `10.0.0.0/30`."
+                "id": "cmd_3_3",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Назначьте статический IP-адрес 172.16.1.1/28 интерфейсу enp7s2 на ISP через файл ipv4address",
+                "correctAnswers": [
+                        "echo '172.16.1.1/28' > /etc/net/ifaces/enp7s2/ipv4address",
+                        "echo 172.16.1.1/28 > /etc/net/ifaces/enp7s2/ipv4address"
+                ],
+                "hint1": "В Альте адреса не пишутся в один общий конфиг, а записываются прямо в файл ipv4address внутри каталога нужного интерфейса.",
+                "hint2": "Синтаксис: echo '<IP/префикс>' > /etc/net/ifaces/<имя_интерфейса>/ipv4address",
+                "explanation": "Записывает адрес интерфейса в сторону главного офиса HQ."
         },
         {
-            id: "cmd_6_3",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Поднимите интерфейс gre1 с помощью утилиты ifup",
-            correctAnswers: [
-                "ifup gre1"
-            ],
-            hint1: "ifup <имя>",
-            hint2: "ifup gre1",
-            explanation: "`ifup` активирует сетевой интерфейс средствами `/etc/net`."
+                "id": "cmd_3_4",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Скопируйте каталог интерфейса enp7s1 в enp7s3 для настройки линка к филиалу BR",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s3",
+                        "cp -r enp7s1 enp7s3"
+                ],
+                "hint1": "Рекурсивное копирование каталога сетевого интерфейса средствами cp.",
+                "hint2": "Синтаксис: cp -r <откуда> <куда>",
+                "explanation": "Создает каталог для третьего физического адаптера на ISP."
         },
         {
-            id: "cmd_6_4",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Войдите в интерактивную оболочку маршрутизации FRR (vtysh)",
-            correctAnswers: [
-                "vtysh"
-            ],
-            hint1: "vtysh",
-            hint2: "vtysh",
-            explanation: "`vtysh` предоставляет единый Cisco-подобный CLI для всех демонов FRR (zebra, ospfd, bgpd)."
+                "id": "cmd_3_5",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Назначьте IP-адрес 172.16.2.1/28 интерфейсу enp7s3 на ISP",
+                "correctAnswers": [
+                        "echo '172.16.2.1/28' > /etc/net/ifaces/enp7s3/ipv4address",
+                        "echo 172.16.2.1/28 > /etc/net/ifaces/enp7s3/ipv4address"
+                ],
+                "hint1": "Запишите IP-адрес интерфейса в сторону филиала в соответствующий файл ipv4address.",
+                "hint2": "Синтаксис: echo '<адрес/маска>' > /etc/net/ifaces/<интерфейс>/ipv4address",
+                "explanation": "Задает адрес линка в сторону филиала (BR)."
         },
         {
-            id: "cmd_6_5",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "hq-rtr# ",
-            task: "Перейдите в режим глобальной конфигурации в vtysh",
-            correctAnswers: [
-                "conf t",
-                "configure terminal"
-            ],
-            hint1: "conf t",
-            hint2: "conf t",
-            explanation: "Команда переводит CLI в режим настройки (prompt сменится на `hq-rtr(config)#`)."
+                "id": "cmd_3_6",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Перезапустите сетевую службу в ОС «Альт» через systemctl",
+                "correctAnswers": [
+                        "systemctl restart network",
+                        "service network restart"
+                ],
+                "hint1": "Вспомните точное системное имя сетевого демона в ОС «Альт» (обратите внимание: не networking, не systemd-networkd).",
+                "hint2": "Синтаксис: systemctl restart <имя_службы>",
+                "explanation": "Служба network перезапускает подсистему /etc/net и перечитывает каталоги ifaces."
         },
         {
-            id: "cmd_6_6",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "hq-rtr(config)# ",
-            task: "Анонсируйте сеть туннеля 10.0.0.0/30 в зону OSPF Area 0",
-            correctAnswers: [
-                "network 10.0.0.0/30 area 0"
-            ],
-            hint1: "network 10.0.0.0/30 area 0",
-            hint2: "network 10.0.0.0/30 area 0",
-            explanation: "Включает OSPF на интерфейсах, чьи IP попадают в подсеть `10.0.0.0/30`, и связывает их с магистральной зоной (backbone Area 0)."
+                "id": "cmd_3_7",
+                "topicId": 3,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Назначьте IP-адрес 172.16.1.2/28 интерфейсу enp7s1 на маршрутизаторе HQ-RTR",
+                "correctAnswers": [
+                        "echo '172.16.1.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
+                        "echo 172.16.1.2/28 > /etc/net/ifaces/enp7s1/ipv4address"
+                ],
+                "hint1": "На стороне HQ-RTR интерфейс смотрит в сторону ISP.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s1/ipv4address",
+                "explanation": "Задаёт статический адрес внешнего линка HQ-RTR."
         },
         {
-            id: "cmd_6_7",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "hq-rtr(config-if)# ",
-            task: "Задайте MD5 ключ 1 с паролем 123qweR% на интерфейсе gre1 в vtysh",
-            correctAnswers: [
-                "ip ospf message-digest-key 1 md5 123qweR%"
-            ],
-            hint1: "ip ospf message-digest-key 1 md5 ...",
-            hint2: "ip ospf message-digest-key 1 md5 123qweR%",
-            explanation: "Настраивает хеширование OSPF-пакетов для защиты от подделки маршрутов злоумышленником."
+                "id": "cmd_3_8",
+                "topicId": 3,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Укажите шлюз по умолчанию 172.16.1.1 для интерфейса enp7s1 в файле ipv4route",
+                "correctAnswers": [
+                        "echo 'default via 172.16.1.1' > /etc/net/ifaces/enp7s1/ipv4route",
+                        "echo default via 172.16.1.1 > /etc/net/ifaces/enp7s1/ipv4route"
+                ],
+                "hint1": "В подсистеме /etc/net маршруты описываются в файле ipv4route синтаксисом ip route (default via IP).",
+                "hint2": "Синтаксис: echo 'default via <IP_шлюза>' > /etc/net/ifaces/<интерфейс>/ipv4route",
+                "explanation": "Направляет весь нелокальный трафик на провайдерский маршрутизатор ISP."
         },
         {
-            id: "cmd_6_8",
-            topicId: 6,
-            host: "hq-rtr",
-            prompt: "root@hq-rtr:~# ",
-            task: "Выведите таблицу соседей OSPF через vtysh одной командой",
-            correctAnswers: [
-                "vtysh -c \"show ip ospf neighbor\"",
-                "vtysh -c 'show ip ospf neighbor'"
-            ],
-            hint1: "vtysh -c \"show ip ospf neighbor\"",
-            hint2: "vtysh -c \"show ip ospf neighbor\"",
-            explanation: "Флаг `-c` позволяет выполнить команду vtysh прямо из bash. Сосед должен быть в состоянии `Full`."
-        },
-
-        // --- Тема 7 ---
-        {
-            id: "cmd_7_1",
-            topicId: 7,
-            host: "hq-cli",
-            prompt: "root@hq-cli:~# ",
-            task: "Освободите текущий IP-адрес DHCP на интерфейсе с помощью dhclient",
-            correctAnswers: [
-                "dhclient -r",
-                "dhclient -r enp0s3.200",
-                "dhclient -r enp7s1.200"
-            ],
-            hint1: "dhclient -r",
-            hint2: "dhclient -r",
-            explanation: "Ключ `-r` отправляет DHCPRELEASE серверу, освобождая арендованный IP-адрес."
+                "id": "cmd_3_9",
+                "topicId": 3,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Пропишите публичный DNS-сервер Яндекса (77.88.8.8) в resolv.conf интерфейса enp7s1 на HQ-RTR",
+                "correctAnswers": [
+                        "echo 'nameserver 77.88.8.8' > /etc/net/ifaces/enp7s1/resolv.conf",
+                        "echo nameserver 77.88.8.8 > /etc/net/ifaces/enp7s1/resolv.conf"
+                ],
+                "hint1": "В файле resolv.conf адрес DNS указывается после директивы nameserver.",
+                "hint2": "Синтаксис: echo 'nameserver <IP_DNS>' > /etc/net/ifaces/<интерфейс>/resolv.conf",
+                "explanation": "Необходимо для доступа к репозиториям пакетов до поднятия собственного DNS."
         },
         {
-            id: "cmd_7_2",
-            topicId: 7,
-            host: "hq-cli",
-            prompt: "root@hq-cli:~# ",
-            task: "Запросите новый IP-адрес по DHCP на интерфейсе enp0s3.200",
-            correctAnswers: [
-                "dhclient enp0s3.200",
-                "dhclient"
-            ],
-            hint1: "dhclient enp0s3.200",
-            hint2: "dhclient enp0s3.200",
-            explanation: "`dhclient` отправляет DHCPDISCOVER и получает сетевую конфигурацию от `dnsmasq`."
-        },
-
-        // --- Тема 8 ---
-        {
-            id: "cmd_8_1",
-            topicId: 8,
-            host: "hq-srv",
-            prompt: "root@hq-srv:~# ",
-            task: "Проверьте, слушает ли dnsmasq UDP-порт 53 с помощью утилиты ss",
-            correctAnswers: [
-                "ss -ulnp | grep dnsmasq",
-                "ss -unlp | grep dnsmasq",
-                "ss -uln | grep 53"
-            ],
-            hint1: "ss -ulnp | grep dnsmasq",
-            hint2: "ss -ulnp | grep dnsmasq",
-            explanation: "`ss -ulnp` показывает все открытые UDP-сокеты (`-u` UDP, `-l` listening, `-n` numeric, `-p` processes)."
+                "id": "cmd_3_10",
+                "topicId": 3,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Назначьте IP-адрес 172.16.2.2/28 интерфейсу enp7s1 на BR-RTR",
+                "correctAnswers": [
+                        "echo '172.16.2.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
+                        "echo 172.16.2.2/28 > /etc/net/ifaces/enp7s1/ipv4address"
+                ],
+                "hint1": "Задайте IP внешнего интерфейса филиала, смотрящего на ISP.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s1/ipv4address",
+                "explanation": "Назначает адрес внешнего линка маршрутизатора филиала."
         },
         {
-            id: "cmd_8_2",
-            topicId: 8,
-            host: "hq-cli",
-            prompt: "user@hq-cli:~$ ",
-            task: "Подключитесь по SSH к HQ-SRV по доменному имени hq-srv.au-team.irpo на порт 2026 под пользователем sshuser",
-            correctAnswers: [
-                "ssh sshuser@hq-srv.au-team.irpo -p 2026",
-                "ssh -p 2026 sshuser@hq-srv.au-team.irpo"
-            ],
-            hint1: "ssh sshuser@<FQDN> -p <порт>",
-            hint2: "ssh sshuser@hq-srv.au-team.irpo -p 2026",
-            explanation: "Флаг `-p 2026` указывает нестандартный порт SSH, а имя хоста разрешается через наш локальный DNS-сервер."
+                "id": "cmd_3_11",
+                "topicId": 3,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Укажите шлюз по умолчанию 172.16.2.1 для интерфейса enp7s1 на BR-RTR",
+                "correctAnswers": [
+                        "echo 'default via 172.16.2.1' > /etc/net/ifaces/enp7s1/ipv4route",
+                        "echo default via 172.16.2.1 > /etc/net/ifaces/enp7s1/ipv4route"
+                ],
+                "hint1": "Шлюзом для филиала выступает IP-адрес интерфейса enp7s3 на ISP.",
+                "hint2": "Синтаксис: echo 'default via <IP>' > .../ipv4route",
+                "explanation": "Задаёт шлюз выхода во внешнюю сеть для филиала."
+        },
+        {
+                "id": "cmd_3_12",
+                "topicId": 3,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Назначьте локальный IP 192.168.3.1/28 интерфейсу enp7s2 (в сторону BR-SRV) на BR-RTR",
+                "correctAnswers": [
+                        "echo '192.168.3.1/28' > /etc/net/ifaces/enp7s2/ipv4address",
+                        "echo 192.168.3.1/28 > /etc/net/ifaces/enp7s2/ipv4address"
+                ],
+                "hint1": "Задайте IP внутреннего интерфейса маршрутизатора филиала, к которому подключен сервер BR-SRV.",
+                "hint2": "Синтаксис: echo '<адрес/маска>' > /etc/net/ifaces/enp7s2/ipv4address",
+                "explanation": "Шлюз локальной сети филиала BR."
+        },
+        {
+                "id": "cmd_3_13",
+                "topicId": 3,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Назначьте IP-адрес 192.168.3.2/28 интерфейсу enp0s3 на сервере филиала BR-SRV",
+                "correctAnswers": [
+                        "echo '192.168.3.2/28' > /etc/net/ifaces/enp0s3/ipv4address",
+                        "echo 192.168.3.2/28 > /etc/net/ifaces/enp0s3/ipv4address"
+                ],
+                "hint1": "Обратите внимание на имя сетевой карты сервера: в KVM/QEMU это enp0s3.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp0s3/ipv4address",
+                "explanation": "Назначает статический IP серверу филиала."
+        },
+        {
+                "id": "cmd_3_14",
+                "topicId": 3,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Укажите шлюз по умолчанию 192.168.3.1 на интерфейсе enp0s3 сервера BR-SRV",
+                "correctAnswers": [
+                        "echo 'default via 192.168.3.1' > /etc/net/ifaces/enp0s3/ipv4route",
+                        "echo default via 192.168.3.1 > /etc/net/ifaces/enp0s3/ipv4route"
+                ],
+                "hint1": "Шлюзом для BR-SRV является локальный интерфейс маршрутизатора BR-RTR.",
+                "hint2": "Синтаксис: echo 'default via <IP>' > .../ipv4route",
+                "explanation": "Задаёт маршрут к шлюзу филиала."
+        },
+        {
+                "id": "cmd_3_15",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Проверьте связность от ISP до HQ-RTR (172.16.1.2), отправив ровно 3 пакета",
+                "correctAnswers": [
+                        "ping -c 3 172.16.1.2"
+                ],
+                "hint1": "Используйте стандартную утилиту ICMP проверки связности с ограничителем числа пакетов.",
+                "hint2": "Синтаксис: ping -c <число> <целевой_IP>",
+                "explanation": "Проверяет физическую и L3-связность провайдерского линка к HQ."
+        },
+        {
+                "id": "cmd_3_16",
+                "topicId": 3,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Проверьте связность от ISP до BR-RTR (172.16.2.2), отправив ровно 3 пакета",
+                "correctAnswers": [
+                        "ping -c 3 172.16.2.2"
+                ],
+                "hint1": "Проверка пинга в сторону маршрутизатора филиала.",
+                "hint2": "Синтаксис: ping -c 3 <IP>",
+                "explanation": "Проверяет линк провайдера к филиалу."
+        },
+        {
+                "id": "cmd_4_1",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Создайте директорию сабинтерфейса VLAN 100 (enp7s2.100), скопировав шаблон enp7s1",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.100",
+                        "cp -r enp7s1 enp7s2.100"
+                ],
+                "hint1": "В Альте имя каталога VLAN формируется как <имя_базового_интерфейса>.<номер_vlan>.",
+                "hint2": "Синтаксис: cp -r .../enp7s1 .../enp7s2.<номер_vlan>",
+                "explanation": "Создает каталог подинтерфейса тегированного трафика VLAN 100."
+        },
+        {
+                "id": "cmd_4_2",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Создайте директорию сабинтерфейса VLAN 200 (enp7s2.200) для клиентов",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.200",
+                        "cp -r enp7s1 enp7s2.200"
+                ],
+                "hint1": "Копирование каталога сетевого интерфейса для клиентского сегмента VLAN 200.",
+                "hint2": "Синтаксис: cp -r .../enp7s1 .../enp7s2.200",
+                "explanation": "Создает каталог подинтерфейса VLAN 200 на HQ-RTR."
+        },
+        {
+                "id": "cmd_4_3",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Создайте директорию сабинтерфейса VLAN 999 (enp7s2.999) для сегмента управления",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp7s1 /etc/net/ifaces/enp7s2.999",
+                        "cp -r enp7s1 enp7s2.999"
+                ],
+                "hint1": "Сегмент управления стендом (Management) согласно таблице адресации вынесен в VLAN 999.",
+                "hint2": "Синтаксис: cp -r .../enp7s1 .../enp7s2.999",
+                "explanation": "Создает подинтерфейс управления."
+        },
+        {
+                "id": "cmd_4_4",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Назначьте IP-адрес 192.168.1.1/27 интерфейсу VLAN 100 (enp7s2.100)",
+                "correctAnswers": [
+                        "echo '192.168.1.1/27' > /etc/net/ifaces/enp7s2.100/ipv4address",
+                        "echo 192.168.1.1/27 > /etc/net/ifaces/enp7s2.100/ipv4address"
+                ],
+                "hint1": "Шлюз серверного сегмента с маской /27 (сеть серверов).",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s2.100/ipv4address",
+                "explanation": "Назначает адрес шлюза для VLAN 100."
+        },
+        {
+                "id": "cmd_4_5",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Назначьте IP-адрес 192.168.2.1/28 интерфейсу клиентского VLAN 200 (enp7s2.200)",
+                "correctAnswers": [
+                        "echo '192.168.2.1/28' > /etc/net/ifaces/enp7s2.200/ipv4address",
+                        "echo 192.168.2.1/28 > /etc/net/ifaces/enp7s2.200/ipv4address"
+                ],
+                "hint1": "Шлюз клиентского сегмента с маской /28.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s2.200/ipv4address",
+                "explanation": "Назначает адрес шлюза для клиентских ПК (VLAN 200)."
+        },
+        {
+                "id": "cmd_4_6",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Назначьте IP-адрес 192.168.99.1/29 интерфейсу управления VLAN 999 (enp7s2.999)",
+                "correctAnswers": [
+                        "echo '192.168.99.1/29' > /etc/net/ifaces/enp7s2.999/ipv4address",
+                        "echo 192.168.99.1/29 > /etc/net/ifaces/enp7s2.999/ipv4address"
+                ],
+                "hint1": "Шлюз сегмента управления сетью с маской /29.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s2.999/ipv4address",
+                "explanation": "Задаёт IP для VLAN управления."
+        },
+        {
+                "id": "cmd_4_7",
+                "topicId": 4,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "На сервере HQ-SRV создайте каталог интерфейса VLAN 100 (enp0s3.100), скопировав enp0s3",
+                "correctAnswers": [
+                        "cp -r /etc/net/ifaces/enp0s3 /etc/net/ifaces/enp0s3.100",
+                        "cp -r enp0s3 enp0s3.100"
+                ],
+                "hint1": "На виртуальном сервере сетевая карта называется enp0s3. Сформируйте имя сабинтерфейса с тегом 100.",
+                "hint2": "Синтаксис: cp -r .../enp0s3 .../enp0s3.100",
+                "explanation": "Создает каталог VLAN 100 на сервере."
+        },
+        {
+                "id": "cmd_4_8",
+                "topicId": 4,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Назначьте статический IP 192.168.1.2/27 интерфейсу enp0s3.100 на сервере HQ-SRV",
+                "correctAnswers": [
+                        "echo '192.168.1.2/27' > /etc/net/ifaces/enp0s3.100/ipv4address",
+                        "echo 192.168.1.2/27 > /etc/net/ifaces/enp0s3.100/ipv4address"
+                ],
+                "hint1": "Сервер находится в сети 192.168.1.0/27 и получает второй доступный адрес хоста.",
+                "hint2": "Синтаксис: echo '<адрес/маска>' > /etc/net/ifaces/enp0s3.100/ipv4address",
+                "explanation": "Назначает статический адрес серверу HQ-SRV."
+        },
+        {
+                "id": "cmd_4_9",
+                "topicId": 4,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Задайте маршрут по умолчанию через шлюз HQ-RTR (192.168.1.1) на интерфейсе enp0s3.100",
+                "correctAnswers": [
+                        "echo 'default via 192.168.1.1' > /etc/net/ifaces/enp0s3.100/ipv4route",
+                        "echo default via 192.168.1.1 > /etc/net/ifaces/enp0s3.100/ipv4route"
+                ],
+                "hint1": "Весь исходящий трафик сервера должен направляться на IP-адрес подинтерфейса маршрутизатора в этом же VLAN.",
+                "hint2": "Синтаксис: echo 'default via <IP_шлюза_VLAN>' > .../ipv4route",
+                "explanation": "Направляет пакеты сервера через шлюз HQ-RTR."
+        },
+        {
+                "id": "cmd_4_10",
+                "topicId": 4,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Проверьте пинг с маршрутизатора HQ-RTR до сервера HQ-SRV (192.168.1.2), отправив 3 пакета",
+                "correctAnswers": [
+                        "ping -c 3 192.168.1.2"
+                ],
+                "hint1": "Проверка сквозной связности внутри VLAN 100.",
+                "hint2": "Синтаксис: ping -c 3 <IP_сервера>",
+                "explanation": "Подтверждает корректную работу 802.1Q тегирования между RTR и SRV."
+        },
+        {
+                "id": "cmd_5_1",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Проверьте текущее значение параметра ядра net.ipv4.ip_forward с помощью утилиты sysctl",
+                "correctAnswers": [
+                        "sysctl net.ipv4.ip_forward",
+                        "cat /proc/sys/net/ipv4/ip_forward"
+                ],
+                "hint1": "Вспомните команду управления динамическими параметрами ядра Linux подсистемы /proc/sys/.",
+                "hint2": "Синтаксис: sysctl net.ipv4.<имя_параметра>",
+                "explanation": "Значение 1 означает включенный режим программного маршрутизатора."
+        },
+        {
+                "id": "cmd_5_2",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Включите форвардинг IPv4-пакетов немедленно в работающем ядре через sysctl -w",
+                "correctAnswers": [
+                        "sysctl -w net.ipv4.ip_forward=1",
+                        "sysctl -w net.ipv4.ip_forward = 1",
+                        "echo 1 > /proc/sys/net/ipv4/ip_forward"
+                ],
+                "hint1": "Ключ -w утилиты sysctl производит запись (write) нового значения параметра в память ядра.",
+                "hint2": "Синтаксис: sysctl -w net.ipv4.ip_forward=<значение>",
+                "explanation": "Немедленно разрешает транзит пакетов между интерфейсами без перезагрузки."
+        },
+        {
+                "id": "cmd_5_3",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Установите утилиту управления межсетевым экраном iptables",
+                "correctAnswers": [
+                        "apt-get install iptables -y",
+                        "apt-get install -y iptables"
+                ],
+                "hint1": "В минимальном дистрибутиве Альт JeOS пакет iptables по умолчанию отсутствует.",
+                "hint2": "Синтаксис: apt-get install <имя_пакета> -y",
+                "explanation": "Устанавливает утилиту для настройки правил таблиц фильтрации и трансляции адресов."
+        },
+        {
+                "id": "cmd_5_4",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Добавьте правило MASQUERADE для NAT на внешнем интерфейсе enp7s1 на ISP",
+                "correctAnswers": [
+                        "iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE"
+                ],
+                "hint1": "Подумайте: какая таблица отвечает за трансляцию адресов (-t), в какую цепочку попадают исходящие пакеты (-A), и какое действие (-j) подменяет адрес.",
+                "hint2": "Синтаксис: iptables -t nat -A POSTROUTING -o <внешний_интерфейс> -j MASQUERADE",
+                "explanation": "Включает динамический SNAT (маскировку) для всех исходящих во внешнюю сеть пакетов."
+        },
+        {
+                "id": "cmd_5_5",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Выведите список всех правил таблицы NAT утилитой iptables",
+                "correctAnswers": [
+                        "iptables -t nat -L",
+                        "iptables -t nat -vnL",
+                        "iptables -t nat -S"
+                ],
+                "hint1": "Для вывода списка правил используется ключ -L (list) с явным указанием таблицы nat.",
+                "hint2": "Синтаксис: iptables -t nat -<ключ_вывода>",
+                "explanation": "Показывает правила в цепочках PREROUTING, INPUT, OUTPUT, POSTROUTING."
+        },
+        {
+                "id": "cmd_5_6",
+                "topicId": 5,
+                "host": "isp",
+                "prompt": "root@isp:~# ",
+                "task": "Сохраните текущие правила iptables в файл /root/iptables_rules",
+                "correctAnswers": [
+                        "iptables-save > /root/iptables_rules"
+                ],
+                "hint1": "Вспомните штатную утилиту дампа правил iptables и перенаправление вывода в файл.",
+                "hint2": "Синтаксис: утилита-save > <путь_к_файлу>",
+                "explanation": "Создает текстовый дамп всех активных правил файрвола."
+        },
+        {
+                "id": "cmd_5_7",
+                "topicId": 5,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "На маршрутизаторе HQ-RTR добавьте правило MASQUERADE для внешнего интерфейса enp7s1",
+                "correctAnswers": [
+                        "iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE"
+                ],
+                "hint1": "Правило аналогично провайдерскому, транслирует трафик локальных сетей головного офиса наружу.",
+                "hint2": "Синтаксис: iptables -t nat -A POSTROUTING -o enp7s1 -j ...",
+                "explanation": "Позволяет внутренним VLAN выходить в интернет через шлюз HQ."
+        },
+        {
+                "id": "cmd_5_8",
+                "topicId": 5,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Проверьте выход в глобальный Интернет, отправив 3 пинга на ya.ru с HQ-RTR",
+                "correctAnswers": [
+                        "ping -c 3 ya.ru",
+                        "ping -c 3 yandex.ru"
+                ],
+                "hint1": "Проверка сквозного прохождения пакетов через NAT маршрутизатора ISP в реальную сеть.",
+                "hint2": "Синтаксис: ping -c 3 <доменное_имя>",
+                "explanation": "Подтверждает корректную работу NAT и форвардинга."
+        },
+        {
+                "id": "cmd_6_1",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Создайте директорию интерфейса для GRE-туннеля gre1 в подсистеме /etc/net",
+                "correctAnswers": [
+                        "mkdir /etc/net/ifaces/gre1",
+                        "mkdir -p /etc/net/ifaces/gre1"
+                ],
+                "hint1": "Для туннелей в /etc/net создаётся отдельный каталог точно так же, как для физических интерфейсов.",
+                "hint2": "Синтаксис: mkdir /etc/net/ifaces/<имя_туннеля>",
+                "explanation": "Создает каталог для параметров туннельного адаптера gre1."
+        },
+        {
+                "id": "cmd_6_2",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Назначьте IP-адрес 10.0.0.1/30 туннельному интерфейсу gre1 на HQ-RTR",
+                "correctAnswers": [
+                        "echo '10.0.0.1/30' > /etc/net/ifaces/gre1/ipv4address",
+                        "echo 10.0.0.1/30 > /etc/net/ifaces/gre1/ipv4address"
+                ],
+                "hint1": "Запишите адрес туннельной подсети point-to-point /30 в файл ipv4address туннеля.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/gre1/ipv4address",
+                "explanation": "Назначает адрес локальной стороны туннеля."
+        },
+        {
+                "id": "cmd_6_3",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Поднимите созданный туннельный интерфейс gre1 с помощью утилиты ifup",
+                "correctAnswers": [
+                        "ifup gre1"
+                ],
+                "hint1": "Вспомните команду для немедленной активации сетевого интерфейса в Альте без перезапуска всей сети.",
+                "hint2": "Синтаксис: if... <имя_интерфейса>",
+                "explanation": "Инициализирует ядром виртуальный туннель gre1."
+        },
+        {
+                "id": "cmd_6_4",
+                "topicId": 6,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Назначьте IP-адрес 10.0.0.2/30 интерфейсу gre1 на маршрутизаторе филиала BR-RTR",
+                "correctAnswers": [
+                        "echo '10.0.0.2/30' > /etc/net/ifaces/gre1/ipv4address",
+                        "echo 10.0.0.2/30 > /etc/net/ifaces/gre1/ipv4address"
+                ],
+                "hint1": "Удалённая сторона туннеля в подсети 10.0.0.0/30 получает адрес .2.",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/gre1/ipv4address",
+                "explanation": "Задает адрес удалённого конца туннеля."
+        },
+        {
+                "id": "cmd_6_5",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Проверьте связность по туннелю, отправив 3 пинга с HQ-RTR на IP 10.0.0.2 (BR-RTR)",
+                "correctAnswers": [
+                        "ping -c 3 10.0.0.2"
+                ],
+                "hint1": "Пинг удалённого внутреннего IP туннеля GRE.",
+                "hint2": "Синтаксис: ping -c 3 <IP_туннеля_BR>",
+                "explanation": "Проверяет инкапсуляцию и прохождение трафика внутри GRE-туннеля."
+        },
+        {
+                "id": "cmd_6_6",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Установите пакет динамической маршрутизации frr (FRRouting)",
+                "correctAnswers": [
+                        "apt-get install frr -y",
+                        "apt-get install -y frr"
+                ],
+                "hint1": "Стек протоколов динамической маршрутизации в современных дистрибутивах (замена Quagga).",
+                "hint2": "Синтаксис: apt-get install <имя_пакета> -y",
+                "explanation": "Устанавливает демоны zebra, ospfd, bgpd и утилиту vtysh."
+        },
+        {
+                "id": "cmd_6_7",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Перезапустите службу маршрутизации frr через systemctl",
+                "correctAnswers": [
+                        "systemctl restart frr",
+                        "service frr restart"
+                ],
+                "hint1": "После включения демона ospfd=yes в /etc/frr/daemons необходимо перезапустить сервис.",
+                "hint2": "Синтаксис: systemctl restart <имя_службы>",
+                "explanation": "Запускает процесс ospfd."
+        },
+        {
+                "id": "cmd_6_8",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Войдите в объединенную консоль маршрутизатора FRR (vtysh)",
+                "correctAnswers": [
+                        "vtysh"
+                ],
+                "hint1": "Вспомните команду запуска единой CLI-оболочки FRRouting.",
+                "hint2": "Синтаксис: vt...",
+                "explanation": "Открывает Cisco-подобный командный интерфейс управления протоколами маршрутизации."
+        },
+        {
+                "id": "cmd_6_9",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr# ",
+                "task": "Перейдите в режим глобальной конфигурации в консоли vtysh",
+                "correctAnswers": [
+                        "conf t",
+                        "configure terminal"
+                ],
+                "hint1": "Стандартная команда входа в конфигурационный режим в Cisco IOS и FRR.",
+                "hint2": "Синтаксис: conf ... (или configure terminal)",
+                "explanation": "Меняет приглашение на hq-rtr(config)#."
+        },
+        {
+                "id": "cmd_6_10",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config)# ",
+                "task": "Включите режим настройки протокола OSPF в vtysh",
+                "correctAnswers": [
+                        "router ospf"
+                ],
+                "hint1": "Команда запуска процесса OSPF маршрутизации.",
+                "hint2": "Синтаксис: router <протокол>",
+                "explanation": "Переводит терминал в контекст настройки параметров OSPF."
+        },
+        {
+                "id": "cmd_6_11",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config-router)# ",
+                "task": "Анонсируйте сеть GRE-туннеля 10.0.0.0/30 в магистральную зону area 0",
+                "correctAnswers": [
+                        "network 10.0.0.0/30 area 0"
+                ],
+                "hint1": "Директива network объявляет подсеть и привязывает её к номеру зоны.",
+                "hint2": "Синтаксис: network <подсеть/маска> area <номер_зоны>",
+                "explanation": "Включает рассылку OSPF Hello-пакетов через интерфейс туннеля."
+        },
+        {
+                "id": "cmd_6_12",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config-router)# ",
+                "task": "Анонсируйте серверную сеть 192.168.1.0/27 в зону area 0",
+                "correctAnswers": [
+                        "network 192.168.1.0/27 area 0"
+                ],
+                "hint1": "Анонсирование префикса серверного сегмента VLAN 100.",
+                "hint2": "Синтаксис: network <подсеть> area 0",
+                "explanation": "Передает маршрут к серверам HQ маршрутизатору филиала."
+        },
+        {
+                "id": "cmd_6_13",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config)# ",
+                "task": "Перейдите к настройке интерфейса gre1 в vtysh",
+                "correctAnswers": [
+                        "int gre1",
+                        "interface gre1"
+                ],
+                "hint1": "Команда входа в контекст конкретного интерфейса.",
+                "hint2": "Синтаксис: int <имя_интерфейса>",
+                "explanation": "Переключает контекст на hq-rtr(config-if)#."
+        },
+        {
+                "id": "cmd_6_14",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config-if)# ",
+                "task": "Включите аутентификацию сообщений message-digest для OSPF на интерфейсе gre1",
+                "correctAnswers": [
+                        "ip ospf authentication message-digest"
+                ],
+                "hint1": "Команда включает криптографическую проверку подлинности OSPF-пакетов вместо открытого текста.",
+                "hint2": "Синтаксис: ip ospf authentication <тип_аутентификации>",
+                "explanation": "Активирует алгоритм хеширования пакетов OSPF."
+        },
+        {
+                "id": "cmd_6_15",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config-if)# ",
+                "task": "Задайте MD5 ключ 1 с паролем 123qweR% на интерфейсе туннеля",
+                "correctAnswers": [
+                        "ip ospf message-digest-key 1 md5 123qweR%"
+                ],
+                "hint1": "Вспомните команду задания номера ключа, алгоритма md5 и секретной строки.",
+                "hint2": "Синтаксис: ip ospf message-digest-key <номер> md5 <пароль>",
+                "explanation": "Задает секретный ключ, который должен совпадать на обоих концах туннеля."
+        },
+        {
+                "id": "cmd_6_16",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "hq-rtr(config)# ",
+                "task": "Сохраните активную конфигурацию FRR в энергонезависимую память",
+                "correctAnswers": [
+                        "do wr mem",
+                        "write memory",
+                        "do write memory",
+                        "wr mem"
+                ],
+                "hint1": "В Cisco/FRR команда сохранения конфигурации — write memory (с приставкой do из режима config).",
+                "hint2": "Синтаксис: do wr mem",
+                "explanation": "Записывает изменения в файл /etc/frr/frr.conf."
+        },
+        {
+                "id": "cmd_6_17",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Просмотрите таблицу соседей OSPF из bash одной командой через vtysh -c",
+                "correctAnswers": [
+                        "vtysh -c \"show ip ospf neighbor\"",
+                        "vtysh -c 'show ip ospf neighbor'"
+                ],
+                "hint1": "Используйте ключ -c утилиты vtysh для передачи внутренней команды show ip ospf neighbor.",
+                "hint2": "Синтаксис: vtysh -c \"команда_vtysh\"",
+                "explanation": "Выводит статус соседа 10.0.0.2 (состояние должно быть Full)."
+        },
+        {
+                "id": "cmd_6_18",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Выведите только OSPF-маршруты из таблицы маршрутизации через vtysh",
+                "correctAnswers": [
+                        "vtysh -c \"show ip route ospf\"",
+                        "vtysh -c 'show ip route ospf'"
+                ],
+                "hint1": "Команда show ip route с уточнением конкретного протокола маршрутизации ospf.",
+                "hint2": "Синтаксис: vtysh -c \"show ip route <протокол>\"",
+                "explanation": "Показывает полученный от филиала маршрут к сети 192.168.3.0/28."
+        },
+        {
+                "id": "cmd_6_19",
+                "topicId": 6,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Проверьте сквозную связность от сервера HQ-SRV до сервера филиала BR-SRV (192.168.3.2)",
+                "correctAnswers": [
+                        "ping -c 3 192.168.3.2"
+                ],
+                "hint1": "Пакеты должны пройти через VLAN 100 -> GRE-туннель -> OSPF -> LAN филиала.",
+                "hint2": "Синтаксис: ping -c 3 <IP_сервера_филиала>",
+                "explanation": "Подтверждает полную сквозную маршрутизацию между главным офисом и филиалом."
+        },
+        {
+                "id": "cmd_7_1",
+                "topicId": 7,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Установите комбинированный сервис dnsmasq на маршрутизаторе HQ-RTR",
+                "correctAnswers": [
+                        "apt-get install dnsmasq -y",
+                        "apt-get install -y dnsmasq"
+                ],
+                "hint1": "dnsmasq сочетает легкий DHCP и кэширующий DNS сервер.",
+                "hint2": "Синтаксис: apt-get install <имя_пакета> -y",
+                "explanation": "Устанавливает пакет dnsmasq."
+        },
+        {
+                "id": "cmd_7_2",
+                "topicId": 7,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Перезапустите службу dnsmasq на HQ-RTR для применения настроек пула DHCP",
+                "correctAnswers": [
+                        "systemctl restart dnsmasq",
+                        "service dnsmasq restart"
+                ],
+                "hint1": "Вспомните стандартную команду перезапуска сервиса в systemd.",
+                "hint2": "Синтаксис: systemctl restart <служба>",
+                "explanation": "Применяет параметры из /etc/dnsmasq.conf."
+        },
+        {
+                "id": "cmd_7_3",
+                "topicId": 7,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Проверьте статус службы dnsmasq на HQ-RTR",
+                "correctAnswers": [
+                        "systemctl status dnsmasq",
+                        "service dnsmasq status"
+                ],
+                "hint1": "Команда проверки состояния демона (active / running).",
+                "hint2": "Синтаксис: systemctl status <служба>",
+                "explanation": "Показывает активность процесса DHCP-сервера."
+        },
+        {
+                "id": "cmd_7_4",
+                "topicId": 7,
+                "host": "hq-cli",
+                "prompt": "root@hq-cli:~# ",
+                "task": "На клиенте HQ-CLI освободите текущую аренду IP-адреса с помощью dhclient -r",
+                "correctAnswers": [
+                        "dhclient -r",
+                        "dhclient -r enp0s3.200",
+                        "dhclient -r enp7s1.200"
+                ],
+                "hint1": "Флаг -r (release) утилиты dhclient отправляет серверу пакет освобождения адреса.",
+                "hint2": "Синтаксис: dhclient -<флаг_освобождения>",
+                "explanation": "Очищает текущие выданные сервером параметры сети."
+        },
+        {
+                "id": "cmd_7_5",
+                "topicId": 7,
+                "host": "hq-cli",
+                "prompt": "root@hq-cli:~# ",
+                "task": "Запросите новый IP-адрес по DHCP на интерфейсе enp0s3.200",
+                "correctAnswers": [
+                        "dhclient enp0s3.200",
+                        "dhclient"
+                ],
+                "hint1": "Вызовите клиент DHCP с указанием целевого сабинтерфейса VLAN 200.",
+                "hint2": "Синтаксис: dhclient <имя_интерфейса>",
+                "explanation": "Отправляет DHCPDISCOVER и получает IP из пула 192.168.2.2–2.14."
+        },
+        {
+                "id": "cmd_7_6",
+                "topicId": 7,
+                "host": "hq-cli",
+                "prompt": "root@hq-cli:~# ",
+                "task": "Проверьте полученный IP-адрес на клиенте компактной командой ip -br -c a",
+                "correctAnswers": [
+                        "ip -br -c a",
+                        "ip -br a",
+                        "ip a"
+                ],
+                "hint1": "Компактный цветной вывод сетевых настроек хоста.",
+                "hint2": "Синтаксис: ip -br -c a",
+                "explanation": "Убеждаемся, что интерфейс enp0s3.200 получил динамический адрес."
+        },
+        {
+                "id": "cmd_8_1",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Установите пакет dnsmasq на сервере HQ-SRV",
+                "correctAnswers": [
+                        "apt-get install dnsmasq -y",
+                        "apt-get install -y dnsmasq"
+                ],
+                "hint1": "На HQ-SRV dnsmasq будет выступать в качестве авторитетного DNS-сервера зоны au-team.irpo.",
+                "hint2": "Синтаксис: apt-get install <пакет> -y",
+                "explanation": "Устанавливает DNS-демон."
+        },
+        {
+                "id": "cmd_8_2",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Укажите локальный адрес 127.0.0.1 в resolv.conf интерфейса enp0s3.100 на сервере",
+                "correctAnswers": [
+                        "echo 'nameserver 127.0.0.1' > /etc/net/ifaces/enp0s3.100/resolv.conf",
+                        "echo nameserver 127.0.0.1 > /etc/net/ifaces/enp0s3.100/resolv.conf"
+                ],
+                "hint1": "Чтобы сам сервер обращался к собственному локальному DNS-серверу (loopback).",
+                "hint2": "Синтаксис: echo 'nameserver <loopback_IP>' > .../resolv.conf",
+                "explanation": "Заставляет сервер резолвить имена через собственный dnsmasq."
+        },
+        {
+                "id": "cmd_8_3",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Перезапустите службу dnsmasq на сервере HQ-SRV",
+                "correctAnswers": [
+                        "systemctl restart dnsmasq",
+                        "service dnsmasq restart"
+                ],
+                "hint1": "Перезапуск сервиса после добавления A и PTR записей в /etc/dnsmasq.conf.",
+                "hint2": "Синтаксис: systemctl restart dnsmasq",
+                "explanation": "Запускает DNS-сервер с записями корпоративной зоны."
+        },
+        {
+                "id": "cmd_8_4",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Проверьте утилитой ss, слушает ли dnsmasq входящий UDP-порт 53",
+                "correctAnswers": [
+                        "ss -ulnp | grep dnsmasq",
+                        "ss -ulnp | grep 53",
+                        "ss -unlp | grep dnsmasq"
+                ],
+                "hint1": "Вспомните флаги утилиты ss: -u (udp), -l (listening), -n (numeric), -p (processes).",
+                "hint2": "Синтаксис: ss -ulnp | grep <имя_демона_или_порт>",
+                "explanation": "Показывает прослушивание порта 53 на адресе 192.168.1.2."
+        },
+        {
+                "id": "cmd_8_5",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Проверьте разрешение прямой зоны DNS, отправив 3 пинга на hq-rtr.au-team.irpo",
+                "correctAnswers": [
+                        "ping -c 3 hq-rtr.au-team.irpo"
+                ],
+                "hint1": "Пинг узла по его FQDN-имени (A-запись должна разрешиться в 192.168.1.1).",
+                "hint2": "Синтаксис: ping -c 3 <FQDN_маршрутизатора>",
+                "explanation": "Подтверждает работу прямой зоны DNS на сервере."
+        },
+        {
+                "id": "cmd_8_6",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Проверьте обратную зону DNS (PTR): отправьте пинг на 192.168.1.1 и убедитесь в наличии имени",
+                "correctAnswers": [
+                        "ping -c 3 192.168.1.1"
+                ],
+                "hint1": "При пинге IP-адреса утилита ping отправляет PTR-запрос и подставляет доменное имя узла.",
+                "hint2": "Синтаксис: ping -c 3 <IP>",
+                "explanation": "В выводе ping будет видно resolved имя hq-rtr.au-team.irpo."
+        },
+        {
+                "id": "cmd_8_7",
+                "topicId": 8,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Проверьте рекурсивное разрешение внешних адресов через forwarder 77.88.8.8 (пинг ya.ru)",
+                "correctAnswers": [
+                        "ping -c 3 ya.ru",
+                        "ping -c 3 yandex.ru"
+                ],
+                "hint1": "Пинг внешнего домена через локальный DNS-сервер.",
+                "hint2": "Синтаксис: ping -c 3 <публичный_домен>",
+                "explanation": "Проверяет пересылку внешних запросов на Яндекс DNS."
+        },
+        {
+                "id": "cmd_8_8",
+                "topicId": 8,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Укажите IP нашего DNS-сервера (192.168.1.2) в resolv.conf внешнего интерфейса на HQ-RTR",
+                "correctAnswers": [
+                        "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp7s1/resolv.conf",
+                        "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp7s1/resolv.conf"
+                ],
+                "hint1": "Маршрутизатор теперь должен использовать внутренний сервер HQ-SRV в качестве основного резолвера.",
+                "hint2": "Синтаксис: echo 'nameserver <IP_DNS_сервера>' > .../resolv.conf",
+                "explanation": "Переключает HQ-RTR на использование локального DNS."
+        },
+        {
+                "id": "cmd_8_9",
+                "topicId": 8,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Укажите IP DNS-сервера (192.168.1.2) в resolv.conf на BR-RTR",
+                "correctAnswers": [
+                        "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp7s1/resolv.conf",
+                        "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp7s1/resolv.conf"
+                ],
+                "hint1": "Маршрутизатор филиала обращается к DNS серверу через туннель GRE и OSPF.",
+                "hint2": "Синтаксис: echo 'nameserver 192.168.1.2' > .../resolv.conf",
+                "explanation": "Настраивает резолвер филиала."
+        },
+        {
+                "id": "cmd_8_10",
+                "topicId": 8,
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "task": "На клиенте HQ-CLI проверьте содержимое файла /etc/resolv.conf",
+                "correctAnswers": [
+                        "cat /etc/resolv.conf",
+                        "less /etc/resolv.conf"
+                ],
+                "hint1": "Проверка, что клиент получил адрес DNS-сервера 192.168.1.2 автоматически по опции 6 DHCP.",
+                "hint2": "Синтаксис: cat /etc/resolv.conf",
+                "explanation": "В файле должен отображаться nameserver 192.168.1.2."
+        },
+        {
+                "id": "cmd_8_11",
+                "topicId": 8,
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "task": "Подключитесь с клиента по SSH к серверу HQ-SRV по домену hq-srv.au-team.irpo на порт 2026 под пользователем sshuser",
+                "correctAnswers": [
+                        "ssh sshuser@hq-srv.au-team.irpo -p 2026",
+                        "ssh -p 2026 sshuser@hq-srv.au-team.irpo"
+                ],
+                "hint1": "Вспомните синтаксис SSH подключения: пользователь@хост и ключ указания нестандартного порта.",
+                "hint2": "Синтаксис: ssh <пользователь>@<FQDN> -p <порт>",
+                "explanation": "Финальная проверка связности: доменное имя разрешается через DNS, а SSH слушает на порту 2026."
         }
-    ],
+],
 
     // 6. Вопросы преподавателя при сдаче (с эталонными ответами)
     examQuestions: [
