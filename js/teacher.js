@@ -147,6 +147,10 @@ class TeacherExamTrainer {
                 this.loadCurrentTask();
             });
             this.navContainer.appendChild(pill);
+
+            if (isActive) {
+                setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 40);
+            }
         });
     }
 
@@ -159,6 +163,9 @@ class TeacherExamTrainer {
         this.taskGoal.textContent = `Цель: ${task.task}`;
         this.taskCounter.textContent = `Вопрос ${this.currentTaskIndex + 1} из ${this.tasks.length}`;
         this.termPrompt.textContent = task.prompt;
+
+        const winHost = document.getElementById('win-teacher-userhost');
+        if (winHost) winHost.textContent = task.prompt.trim();
 
         this.hintBox.classList.add('hidden');
         this.hintBox.innerHTML = '';

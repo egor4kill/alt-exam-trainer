@@ -187,16 +187,27 @@ class TerminalTrainer {
                 this.loadCurrentTask();
             });
             this.taskNavContainer.appendChild(pill);
+
+            if (isActive) {
+                setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 40);
+            }
         });
     }
 
     loadCurrentTask() {
         if (!this.filteredTasks || this.filteredTasks.length === 0) {
+            if (this.taskTitle) this.taskTitle.textContent = "Нет заданий в этой категории";
+            if (this.taskDesc) this.taskDesc.textContent = "";
             return;
         }
 
         const task = this.filteredTasks[this.currentTaskIndex];
         const topic = APP_DATA.topics.find(t => t.id === task.topicId);
+
+        if (this.taskTitle) this.taskTitle.textContent = `Задание #${this.currentTaskIndex + 1}: ${task.host.toUpperCase()}`;
+        if (this.taskDesc) this.taskDesc.textContent = task.task;
+        if (this.taskBadge) this.taskBadge.textContent = topic ? topic.badge : `Тема ${task.topicId}`;
+        if (this.taskCounter) this.taskCounter.textContent = `${this.currentTaskIndex + 1} / ${this.filteredTasks.length}`;
 
         const winHost = document.getElementById('win-term-userhost');
         if (winHost) winHost.textContent = `${task.host === 'hq-cli' ? 'user' : 'root'}@${task.host}:~`;
@@ -211,17 +222,15 @@ class TerminalTrainer {
         const isDone = this.completedTasks.has(task.id);
 
         this.termOutput.innerHTML = `
-            <div class="term-task-banner">
-                <div class="term-task-head">
-                    <span><b>[+] ЗАДАНИЕ #${this.currentTaskIndex + 1}/${this.filteredTasks.length}</b> | ВМ: <b class="text-green">${task.host.toUpperCase()}</b> | <span class="text-cyan">${topic ? topic.badge : ''}</span></span>
-                    ${isDone ? '<span class="text-green font-bold">✔ ВЫПОЛНЕНО</span>' : ''}
-                </div>
-                <div class="term-task-goal">
-                    <b>[i] Цель:</b> ${task.task}
-                </div>
+            <div class="term-line sys-msg">
+                <span class="text-cyan">[Стенд Proxmox VE]</span> Виртуальная машина: <b class="text-green">${task.host.toUpperCase()}</b>
+                ${isDone ? '<span class="text-success font-bold ml-2">✔ (Выполнено)</span>' : ''}
             </div>
             <div class="term-line sys-msg">
-                Введите команду в строку ниже и нажмите <b>Enter</b> (или <b>↵</b>). Нажмите <b>F1</b>/<b>F2</b> для подсказок.
+                <span class="text-yellow">Цель:</span> ${task.task}
+            </div>
+            <div class="term-line sys-msg text-muted">
+                Введите команду и нажмите <b>Enter</b>. Доступны подсказки кнопками вверху или клавишами <b>F1 / F2 / F3</b>.
             </div>
         `;
 
