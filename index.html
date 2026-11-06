@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажёр стенда ОС «Альт» — Практики 2–8 и Защита</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Шапка приложения -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon">🐧</div>
+                <div class="logo-text">
+                    <h1>Альт Линукс & Proxmox VE — Тренажёр</h1>
+                    <p>Домен: <code>au-team.irpo</code> | Таймзона: <code>Asia/Barnaul (+07)</code></p>
+                </div>
+            </div>
+
+            <!-- Вкладки навигации -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-target="sec-terminal">
+                    💻 <span>Тренажёр команд</span>
+                </button>
+                <button class="nav-tab" data-target="sec-topology">
+                    🗺️ <span>Карта сети и Адреса</span>
+                </button>
+                <button class="nav-tab" data-target="sec-defense">
+                    🎓 <span>Вопросы преподавателя</span>
+                </button>
+                <button class="nav-tab" data-target="sec-reference">
+                    📋 <span>Шпаргалка и Конфиги</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+
+        <!-- РАЗДЕЛ 1: ТРЕНАЖЁР ВВОДА КОМАНД (ТЕРМИНАЛ) -->
+        <section id="sec-terminal" class="app-section active">
+            <!-- Верхняя панель управления тренажёром -->
+            <div class="trainer-toolbar">
+                <div class="topic-filter-box">
+                    <label for="terminal-topic-filter" class="text-sm text-muted">Раздел:</label>
+                    <select id="terminal-topic-filter" class="select-custom">
+                        <option value="all">Все практики подряд (2–8)</option>
+                        <option value="2">Практика 2: FQDN и Часовой пояс</option>
+                        <option value="3">Практика 3: Сеть /etc/net (IP, маршруты)</option>
+                        <option value="4">Практика 4: VLAN 100 / 200 / 999</option>
+                        <option value="5">Практика 5: NAT (iptables, sysctl)</option>
+                        <option value="6">Практика 6: GRE-туннель и OSPF (FRR)</option>
+                        <option value="7">Практика 7: DHCP (dnsmasq)</option>
+                        <option value="8">Практика 8: DNS и SSH (порт 2026)</option>
+                    </select>
+                </div>
+
+                <div class="stats-badges">
+                    <div class="stat-item">
+                        <span class="text-muted">Прогресс:</span>
+                        <b id="stat-term-completed" class="text-cyan">0 / 0</b>
+                    </div>
+                    <div class="stat-item">
+                        <span class="text-muted">Серия:</span>
+                        <b id="stat-term-streak" class="text-green">0 🔥</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок текущего задания -->
+            <div class="task-header-box">
+                <div class="task-info-left">
+                    <div class="d-flex align-center gap-2 mb-1">
+                        <span id="task-badge" class="badge badge-topic">Тема</span>
+                        <span id="task-counter" class="text-muted text-sm">1 / 1</span>
+                    </div>
+                    <h2 id="task-title">Задание</h2>
+                    <p id="task-desc" class="task-desc">Текст задания...</p>
+                </div>
+                <div class="task-actions">
+                    <button id="btn-hint1" class="btn btn-sm btn-outline">💡 Подсказка 1</button>
+                    <button id="btn-hint2" class="btn btn-sm btn-outline">🔍 Подсказка 2</button>
+                    <button id="btn-show-answer" class="btn btn-sm btn-outline text-yellow">👁 Показать ответ</button>
+                </div>
+            </div>
+
+            <!-- Контейнер подсказки -->
+            <div id="hint-box" class="hint-container hidden"></div>
+
+            <!-- Окно терминала -->
+            <div class="terminal-window">
+                <div id="terminal-output"></div>
+                <div class="terminal-input-row">
+                    <span id="terminal-prompt" class="prompt">root@isp:~# </span>
+                    <input type="text" id="terminal-input" class="term-input" autocomplete="off" spellcheck="false" placeholder="Напишите команду и нажмите Enter...">
+                </div>
+            </div>
+            <div class="mt-2 text-muted text-sm">
+                * Поддерживаются клавиши ↑ / ↓ для навигации по истории команд. Команда <code>clear</code> очищает консоль, <code>help</code> — справка.
+            </div>
+        </section>
+
+
+        <!-- РАЗДЕЛ 2: КАРТА СЕТИ, АДРЕСАЦИЯ И БЛИЦ-ТЕСТ -->
+        <section id="sec-topology" class="app-section">
+            <div class="topo-layout">
+                <!-- Левая колонка: Интерактивная схема и таблица сетей -->
+                <div class="topo-diagram-container">
+                    <h2 class="mb-3 text-cyan">Интерактивная карта топологии стенда</h2>
+                    <p class="text-muted text-sm mb-4">Нажмите на любую виртуальную машину, чтобы открыть её полные сетевые настройки, файлы конфигураций и пароли.</p>
+
+                    <!-- Сетка узлов (ВМ) -->
+                    <div class="topo-grid">
+                        <!-- ISP -->
+                        <div class="topo-node-card isp-card topo-node" data-node="isp">
+                            <div class="node-header">
+                                <span class="node-name">🌐 ISP</span>
+                                <span class="badge" style="background:#3b82f622; color:#3b82f6">ID: 10601</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">Провайдер / NAT</p>
+                            <ul class="node-ip-list">
+                                <li>• enp7s1: <code>DHCP (WAN)</code></li>
+                                <li>• enp7s2: <code>172.16.1.1/28</code> (к HQ)</li>
+                                <li>• enp7s3: <code>172.16.2.1/28</code> (к BR)</li>
+                            </ul>
+                        </div>
+
+                        <!-- HQ-RTR -->
+                        <div class="topo-node-card hq-card topo-node" data-node="hq-rtr">
+                            <div class="node-header">
+                                <span class="node-name">🏢 HQ-RTR</span>
+                                <span class="badge" style="background:#10b98122; color:#10b981">ID: 10602</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">Шлюз центрального офиса</p>
+                            <ul class="node-ip-list">
+                                <li>• enp7s1: <code>172.16.1.2/28</code> (к ISP)</li>
+                                <li>• VLAN 100: <code>192.168.1.1/27</code></li>
+                                <li>• VLAN 200: <code>192.168.2.1/28</code> (DHCP)</li>
+                                <li>• gre1: <code>10.0.0.1/30</code></li>
+                            </ul>
+                        </div>
+
+                        <!-- BR-RTR -->
+                        <div class="topo-node-card br-card topo-node" data-node="br-rtr">
+                            <div class="node-header">
+                                <span class="node-name">🏬 BR-RTR</span>
+                                <span class="badge" style="background:#f59e0b22; color:#f59e0b">ID: 10605</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">Шлюз филиала</p>
+                            <ul class="node-ip-list">
+                                <li>• enp7s1: <code>172.16.2.2/28</code> (к ISP)</li>
+                                <li>• enp7s2: <code>192.168.3.1/28</code> (к BR-SRV)</li>
+                                <li>• gre1: <code>10.0.0.2/30</code></li>
+                            </ul>
+                        </div>
+
+                        <!-- Пустая ячейка для выравнивания -->
+                        <div></div>
+
+                        <!-- HQ сегмент (SRV & CLI) -->
+                        <div class="topo-node-card srv-card topo-node" data-node="hq-srv">
+                            <div class="node-header">
+                                <span class="node-name">🖥️ HQ-SRV</span>
+                                <span class="badge" style="background:#8b5cf622; color:#8b5cf6">ID: 10603</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">DNS-сервер / SSH:2026</p>
+                            <ul class="node-ip-list">
+                                <li>• VLAN 100: <code>192.168.1.2/27</code></li>
+                                <li>• Шлюз: <code>192.168.1.1</code></li>
+                                <li>• DNS: <code>127.0.0.1</code> (порт 53)</li>
+                            </ul>
+                        </div>
+
+                        <!-- BR-SRV -->
+                        <div class="topo-node-card br-srv-card topo-node" data-node="br-srv">
+                            <div class="node-header">
+                                <span class="node-name">🖥️ BR-SRV</span>
+                                <span class="badge" style="background:#ec489922; color:#ec4899">ID: 10606</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">Сервер филиала</p>
+                            <ul class="node-ip-list">
+                                <li>• enp7s1: <code>192.168.3.2/28</code></li>
+                                <li>• Шлюз: <code>192.168.3.1</code></li>
+                                <li>• DNS: <code>192.168.1.2</code></li>
+                            </ul>
+                        </div>
+
+                        <!-- Пустая ячейка -->
+                        <div></div>
+
+                        <!-- HQ-CLI -->
+                        <div class="topo-node-card cli-card topo-node" data-node="hq-cli">
+                            <div class="node-header">
+                                <span class="node-name">💻 HQ-CLI</span>
+                                <span class="badge" style="background:#06b6d422; color:#06b6d4">ID: 10604</span>
+                            </div>
+                            <p class="text-sm text-muted mb-2">Клиентская машина (DHCP)</p>
+                            <ul class="node-ip-list">
+                                <li>• VLAN 200: <code>192.168.2.12/28</code></li>
+                                <li>• Шлюз: <code>192.168.2.1</code></li>
+                                <li>• DNS: <code>192.168.1.2</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Баннер туннеля GRE -->
+                    <div class="tunnel-banner">
+                        <div>
+                            <b class="text-purple">🚇 GRE-туннель (gre1):</b> <code>10.0.0.1/30</code> ↔ <code>10.0.0.2/30</code>
+                        </div>
+                        <div class="text-muted text-sm">
+                            MTU 1476 | TTL 255 | OSPF Area 0 | MD5 key 1
+                        </div>
+                    </div>
+
+                    <!-- Таблица всех сетей (Куда что ведёт) -->
+                    <h3 class="mb-2 mt-4 text-yellow">Таблица подсетей: какие куда ведут</h3>
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Подсеть / CIDR</th>
+                                    <th>Маска сети</th>
+                                    <th>Между какими узлами</th>
+                                    <th>Назначение</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subnet-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Правая колонка: Блиц-тест на запоминание адресов и связей -->
+                <div class="quiz-box">
+                    <div class="d-flex justify-between align-center mb-3">
+                        <h3 class="text-yellow">🎯 Блиц-тренажёр адресов</h3>
+                        <span id="quiz-score-display" class="badge badge-topic">Счет: 0</span>
+                    </div>
+                    <p class="text-sm text-muted mb-3">Проверьте, помните ли вы, какие сети и адреса куда ведут, чтобы уверенно отвечать на вопросы преподавателя.</p>
+
+                    <div id="topo-quiz-card">
+                        <h4 id="quiz-question" class="mb-3 text-cyan">Вопрос...</h4>
+                        <div id="quiz-options" class="mb-3"></div>
+                        <div id="quiz-result" class="mb-3 hidden"></div>
+                        <button id="quiz-next-btn" class="btn btn-success btn-sm hidden">Следующий вопрос →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- РАЗДЕЛ 3: ВОПРОСЫ ПРЕПОДАВАТЕЛЯ ПРИ ЗАЩИТЕ РАБОТ -->
+        <section id="sec-defense" class="app-section">
+            <div class="qa-toolbar">
+                <div class="d-flex gap-2 align-center flex-wrap">
+                    <label for="qa-topic-filter" class="text-sm text-muted">Тема:</label>
+                    <select id="qa-topic-filter" class="select-custom">
+                        <option value="all">Все вопросы преподавателя</option>
+                        <option value="2">Практика 2: FQDN и часовые пояса</option>
+                        <option value="3">Практика 3: Подсистема /etc/net в Альт</option>
+                        <option value="4">Практика 4: VLAN 802.1Q и изоляция</option>
+                        <option value="5">Практика 5: NAT, MASQUERADE и forwarding</option>
+                        <option value="6">Практика 6: GRE, MTU и протокол OSPF</option>
+                        <option value="7">Практика 7: DHCP и опции 3/6</option>
+                        <option value="8">Практика 8: DNS, PTR-записи и SSH</option>
+                    </select>
+                    <input type="text" id="qa-search-input" class="input-custom" placeholder="Поиск по ключевому слову (напр. MTU, OSPF, NAT)...">
+                </div>
+
+                <div class="d-flex gap-2 align-center">
+                    <div class="stat-item">
+                        <span class="text-muted">Выучено:</span>
+                        <b id="stat-qa-learned" class="text-green">0 / 0</b>
+                    </div>
+                    <button id="btn-random-qa" class="btn btn-outline">🎲 Случайный вопрос</button>
+                </div>
+            </div>
+
+            <!-- Контейнер карточек с вопросами -->
+            <div id="qa-cards-container"></div>
+        </section>
+
+
+        <!-- РАЗДЕЛ 4: ШПАРГАЛКА И ГОТОВЫЕ КОНФИГИ -->
+        <section id="sec-reference" class="app-section">
+            <div class="topo-layout">
+                <div>
+                    <h2 class="mb-3 text-cyan">📋 Готовые конфигурации для копирования</h2>
+                    <p class="text-muted text-sm mb-4">Эталонные конфигурации файлов из документа <code>Адреса_и_настройки_стенда.docx</code> с возможностью копирования в один клик.</p>
+                    
+                    <div id="snippets-container" class="snippets-grid mb-4"></div>
+                </div>
+
+                <div>
+                    <!-- Таблица DNS записей -->
+                    <div class="snippet-card mb-4">
+                        <div class="snippet-header">
+                            <b>Таблица записей зоны au-team.irpo (HQ-SRV)</b>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>FQDN-имя</th>
+                                        <th>IP-адрес</th>
+                                        <th>PTR-запись</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dns-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Таблица ВМ в Proxmox -->
+                    <div class="snippet-card">
+                        <div class="snippet-header">
+                            <b>Виртуальные машины стенда в Proxmox VE</b>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>VM ID</th>
+                                        <th>Имя</th>
+                                        <th>FQDN</th>
+                                        <th>Роль</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vm-ref-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно деталей узла -->
+    <div id="node-modal" class="modal-overlay hidden">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modal-node-title">Сведения об узле</h3>
+                <button id="modal-close-btn" class="modal-close">&times;</button>
+            </div>
+            <div id="modal-node-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/data.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/topology.js"></script>
+    <script src="js/qa.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
