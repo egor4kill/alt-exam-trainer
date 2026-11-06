@@ -1,0 +1,296 @@
+// Модуль режима «Сдача у преподавателя» (Живой экзамен)
+
+class TeacherExamTrainer {
+    constructor() {
+        this.tasks = APP_DATA.teacherTasks || [];
+        this.completedTasks = new Set(JSON.parse(localStorage.getItem('alt_teacher_completed') || '[]'));
+        this.history = [];
+        this.historyIndex = -1;
+        this.score = parseInt(localStorage.getItem('alt_teacher_score') || '0', 10);
+        this.streak = 0;
+
+        // Восстанавливаем сохраненный индекс задания
+        const savedIndex = parseInt(localStorage.getItem('alt_teacher_task_index') || '0', 10);
+        this.currentTaskIndex = (savedIndex >= 0 && savedIndex < this.tasks.length) ? savedIndex : 0;
+
+        // Если сохраненное задание уже сделано, переходим к первому нерешенному
+        if (this.completedTasks.has(this.tasks[this.currentTaskIndex]?.id)) {
+            const firstUnsolved = this.tasks.findIndex(t => !this.completedTasks.has(t.id));
+            if (firstUnsolved !== -1) {
+                this.currentTaskIndex = firstUnsolved;
+            }
+        }
+
+        this.initDOMElements();
+        this.bindEvents();
+        this.renderTaskNavigator();
+        this.loadCurrentTask();
+        this.updateStats();
+    }
+
+    initDOMElements() {
+        this.termOutput = document.getElementById('teacher-term-output');
+        this.termInput = document.getElementById('teacher-term-input');
+        this.termPrompt = document.getElementById('teacher-term-prompt');
+        this.speechText = document.getElementById('teacher-speech-text');
+        this.taskGoal = document.getElementById('teacher-task-goal');
+        this.hostBadge = document.getElementById('teacher-host-badge');
+        this.taskCounter = document.getElementById('teacher-task-counter');
+        this.btnHint = document.getElementById('teacher-btn-hint');
+        this.btnShowAnswer = document.getElementById('teacher-btn-answer');
+        this.btnPaste = document.getElementById('teacher-btn-paste');
+        this.hintBox = document.getElementById('teacher-hint-box');
+        this.navContainer = document.getElementById('teacher-task-nav');
+        this.statCompleted = document.getElementById('stat-teacher-completed');
+        this.btnReset = document.getElementById('btn-reset-teacher-progress');
+    }
+
+    bindEvents() {
+        if (!this.termInput) return;
+
+        this.termInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.handleCommand(this.termInput.value);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.navigateHistory(-1);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.navigateHistory(1);
+            }
+        });
+
+        this.btnHint?.addEventListener('click', () => this.showHint());
+        this.btnShowAnswer?.addEventListener('click', () => this.showAnswer());
+        this.btnPaste?.addEventListener('click', () => this.pasteCurrentAnswer());
+
+        this.btnReset?.addEventListener('click', () => {
+            if (confirm("Сбросить весь прогресс сдачи у преподавателя?")) {
+                this.completedTasks.clear();
+                localStorage.removeItem('alt_teacher_completed');
+                localStorage.removeItem('alt_teacher_task_index');
+                localStorage.removeItem('alt_teacher_score');
+                this.currentTaskIndex = 0;
+                this.score = 0;
+                this.streak = 0;
+                this.renderTaskNavigator();
+                this.loadCurrentTask();
+                this.updateStats();
+            }
+        });
+
+        document.querySelector('#sec-teacher .terminal-window')?.addEventListener('click', () => {
+            this.termInput.focus();
+        });
+    }
+
+    renderTaskNavigator() {
+        if (!this.navContainer) return;
+        this.navContainer.innerHTML = '';
+
+        this.tasks.forEach((task, idx) => {
+            const isDone = this.completedTasks.has(task.id);
+            const isActive = idx === this.currentTaskIndex;
+
+            const pill = document.createElement('button');
+            pill.className = `task-pill ${isDone ? 'completed' : ''} ${isActive ? 'active' : ''}`;
+            pill.title = task.task;
+            pill.innerHTML = isDone ? `✔ ${idx + 1}` : `${idx + 1}`;
+            pill.addEventListener('click', () => {
+                this.currentTaskIndex = idx;
+                this.saveState();
+                this.renderTaskNavigator();
+                this.loadCurrentTask();
+            });
+            this.navContainer.appendChild(pill);
+        });
+    }
+
+    loadCurrentTask() {
+        if (this.tasks.length === 0) return;
+
+        const task = this.tasks[this.currentTaskIndex];
+        this.hostBadge.textContent = task.host.toUpperCase();
+        this.speechText.innerHTML = `«${task.teacherSpeech}»`;
+        this.taskGoal.textContent = `Цель: ${task.task}`;
+        this.taskCounter.textContent = `Вопрос ${this.currentTaskIndex + 1} из ${this.tasks.length}`;
+        this.termPrompt.textContent = task.prompt;
+
+        this.hintBox.classList.add('hidden');
+        this.hintBox.innerHTML = '';
+        this.termInput.value = '';
+        this.termInput.focus();
+
+        const isDone = this.completedTasks.has(task.id);
+
+        this.termOutput.innerHTML = `
+            <div class="term-line sys-msg">
+                <span class="text-cyan">[Сдача экзамена]</span> Машина: <b class="text-green">${task.host.toUpperCase()}</b>
+                ${isDone ? '<span class="text-success font-bold ml-2">✔ (Уже сдано)</span>' : ''}
+            </div>
+            <div class="term-line sys-msg">
+                <span class="text-yellow">Преподаватель ждёт выполнения команды:</span> ${task.task}
+            </div>
+        `;
+
+        this.renderTaskNavigator();
+    }
+
+    normalizeCommand(cmd) {
+        return cmd
+            .trim()
+            .replace(/\s+/g, ' ')
+            .replace(/["']/g, "'")
+            .replace(/\s*>\s*/g, ' > ')
+            .replace(/\s*\|\s*/g, ' | ')
+            .replace(/;\s*$/, '');
+    }
+
+    handleCommand(rawCmd) {
+        const cmd = rawCmd.trim();
+        if (!cmd) return;
+
+        this.history.push(cmd);
+        this.historyIndex = this.history.length;
+
+        const task = this.tasks[this.currentTaskIndex];
+        const normUser = this.normalizeCommand(cmd);
+
+        const line = document.createElement('div');
+        line.className = 'term-line';
+        line.innerHTML = `<span class="prompt">${task.prompt}</span><span class="user-cmd">${this.escapeHtml(cmd)}</span>`;
+        this.termOutput.appendChild(line);
+
+        if (normUser === 'clear') {
+            this.termOutput.innerHTML = '';
+            this.termInput.value = '';
+            return;
+        }
+
+        const isCorrect = task.correctAnswers.some(ans => {
+            const normAns = this.normalizeCommand(ans);
+            return normUser === normAns;
+        });
+
+        if (isCorrect) {
+            this.handleSuccess(task);
+        } else {
+            this.handleError(task, cmd);
+        }
+
+        this.termInput.value = '';
+        this.scrollToBottom();
+    }
+
+    handleSuccess(task) {
+        this.streak++;
+        this.score += 10;
+        this.completedTasks.add(task.id);
+        this.saveState();
+
+        this.printOutput(`👨‍🏫 <b>Преподаватель:</b> «Отлично, всё верно! [Зачёт по вопросу]»`, "text-success font-bold");
+        if (task.explanation) {
+            this.printOutput(`💡 <i>Примечание: ${task.explanation}</i>`, "text-info");
+        }
+
+        this.updateStats();
+        this.renderTaskNavigator();
+
+        setTimeout(() => {
+            if (this.currentTaskIndex < this.tasks.length - 1) {
+                this.currentTaskIndex++;
+                this.saveState();
+                this.loadCurrentTask();
+            } else {
+                this.printOutput("🎓 ПРЕВОСХОДНО! Вы ответили на ВСЕ вопросы преподавателя!", "text-yellow font-bold");
+            }
+        }, 1800);
+    }
+
+    handleError(task, cmd) {
+        this.streak = 0;
+        this.printOutput(`👨‍🏫 <b>Преподаватель качает головой:</b> «Нет, команда не та или параметры неверные. Подумай ещё раз.»`, "text-danger");
+    }
+
+    showHint() {
+        const task = this.tasks[this.currentTaskIndex];
+        this.hintBox.classList.remove('hidden');
+        this.hintBox.innerHTML = `
+            <div class="alert alert-warning">
+                <b>${task.hint1}</b>
+            </div>
+        `;
+    }
+
+    showAnswer() {
+        const task = this.tasks[this.currentTaskIndex];
+        const correct = task.correctAnswers[0];
+        this.hintBox.classList.remove('hidden');
+        this.hintBox.innerHTML = `
+            <div class="alert alert-info">
+                <b>Правильная команда:</b> <code>${this.escapeHtml(correct)}</code>
+                <button class="btn btn-sm btn-outline ml-2" onclick="teacherTrainer.pasteAnswer('${this.escapeQuotes(correct)}')">Вставить в консоль</button>
+            </div>
+        `;
+    }
+
+    pasteCurrentAnswer() {
+        const task = this.tasks[this.currentTaskIndex];
+        const correct = task.correctAnswers[0];
+        this.pasteAnswer(correct);
+    }
+
+    pasteAnswer(text) {
+        this.termInput.value = text;
+        this.termInput.focus();
+    }
+
+    navigateHistory(direction) {
+        if (this.history.length === 0) return;
+        this.historyIndex += direction;
+        if (this.historyIndex < 0) this.historyIndex = 0;
+        if (this.historyIndex > this.history.length) this.historyIndex = this.history.length;
+
+        if (this.historyIndex === this.history.length) {
+            this.termInput.value = '';
+        } else {
+            this.termInput.value = this.history[this.historyIndex];
+        }
+    }
+
+    printOutput(msg, cssClass = "") {
+        const div = document.createElement('div');
+        div.className = `term-line ${cssClass}`;
+        div.innerHTML = msg;
+        this.termOutput.appendChild(div);
+        this.scrollToBottom();
+    }
+
+    scrollToBottom() {
+        const win = document.querySelector('#sec-teacher .terminal-window');
+        if (win) {
+            win.scrollTop = win.scrollHeight;
+        }
+    }
+
+    saveState() {
+        localStorage.setItem('alt_teacher_completed', JSON.stringify([...this.completedTasks]));
+        localStorage.setItem('alt_teacher_task_index', this.currentTaskIndex.toString());
+        localStorage.setItem('alt_teacher_score', this.score.toString());
+    }
+
+    updateStats() {
+        const total = this.tasks.length;
+        const count = this.completedTasks.size;
+        if (this.statCompleted) this.statCompleted.textContent = `${count} / ${total}`;
+    }
+
+    escapeHtml(text) {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    escapeQuotes(text) {
+        return text.replace(/'/g, "\\'");
+    }
+}

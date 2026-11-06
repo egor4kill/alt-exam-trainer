@@ -756,4 +756,356 @@ const APP_DATA = {
             expl: "1500 - 24 байта служебных заголовков GRE/IP = 1476."
         }
     ]
+,
+
+    // 8. Задания для сдачи преподавателю (Живой экзамен)
+    teacherTasks: [
+        {
+                "id": "teach_1",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Так, покажи мне текущее системное время и какой часовой пояс сейчас выставлен на этом маршрутизаторе.",
+                "task": "Показать системное время и часовой пояс на HQ-RTR",
+                "correctAnswers": [
+                        "timedatectl",
+                        "timedatectl status",
+                        "timedatectl | grep \"Time zone\"",
+                        "timedatectl | grep Time"
+                ],
+                "hint1": "Преподаватель хмурится: 'Утилита systemd для времени... timedate...'",
+                "hint2": "timedatectl status",
+                "explanation": "timedatectl status выводит системное время, таймзону (Asia/Barnaul) и статус NTP синхронизации."
+        },
+        {
+                "id": "teach_2",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Хорошо. А теперь поменяй часовой пояс на московское время (Europe/Moscow). Покажи, как ты это делаешь.",
+                "task": "Сменить часовой пояс на Europe/Moscow",
+                "correctAnswers": [
+                        "timedatectl set-timezone Europe/Moscow"
+                ],
+                "hint1": "Преподаватель: 'У timedatectl есть опция set-timezone...'",
+                "hint2": "timedatectl set-timezone Europe/Moscow",
+                "explanation": "Команда меняет симлинк /etc/localtime на зону Europe/Moscow."
+        },
+        {
+                "id": "teach_3",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Отлично. А теперь верни обратно наш алтайский пояс Asia/Barnaul, как положено по регламенту.",
+                "task": "Вернуть часовой пояс Asia/Barnaul",
+                "correctAnswers": [
+                        "timedatectl set-timezone Asia/Barnaul"
+                ],
+                "hint1": "Преподаватель: 'Снова set-timezone, но на наш Asia/Barnaul'",
+                "hint2": "timedatectl set-timezone Asia/Barnaul",
+                "explanation": "Возвращает таймзону Asia/Barnaul (+07)."
+        },
+        {
+                "id": "teach_4",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Поменяй hostname этой машины с hq-rtr на test-rtr.au-team.irpo, покажи команду.",
+                "task": "Сменить FQDN на test-rtr.au-team.irpo",
+                "correctAnswers": [
+                        "hostnamectl set-hostname test-rtr.au-team.irpo",
+                        "hostnamectl set-hostname test-rtr.au-team.irpo; exec bash"
+                ],
+                "hint1": "Преподаватель: 'Утилита hostnamectl с опцией set-hostname...'",
+                "hint2": "hostnamectl set-hostname test-rtr.au-team.irpo",
+                "explanation": "Задает новое имя хоста в системе."
+        },
+        {
+                "id": "teach_5",
+                "host": "hq-rtr",
+                "prompt": "root@test-rtr:~# ",
+                "teacherSpeech": "Молодец. А теперь верни правильное имя hq-rtr.au-team.irpo и перезапусти командную оболочку bash, чтобы имя в строке обновилось.",
+                "task": "Вернуть имя hq-rtr.au-team.irpo и обновить сессию bash",
+                "correctAnswers": [
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash",
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo && exec bash",
+                        "hostnamectl set-hostname hq-rtr.au-team.irpo"
+                ],
+                "hint1": "Преподаватель: 'hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash'",
+                "hint2": "hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash",
+                "explanation": "exec bash обновляет переменные оболочки и приглашение prompt."
+        },
+        {
+                "id": "teach_6",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Выведи мне краткий цветной список всех сетевых интерфейсов и их IP-адресов. Хочу увидеть статус линков и адреса.",
+                "task": "Вывести компактный цветной список сетевых интерфейсов",
+                "correctAnswers": [
+                        "ip -br -c a",
+                        "ip -br -c addr",
+                        "ip -br a",
+                        "ip a"
+                ],
+                "hint1": "Преподаватель: 'Флаги -br (brief) и -c (color) у команды ip a'",
+                "hint2": "ip -br -c a",
+                "explanation": "ip -br -c a — стандартная быстрая команда проверки интерфейсов в Альте."
+        },
+        {
+                "id": "teach_7",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Покажи мне таблицу маршрутизации ядра Linux на этой машине. Куда идёт трафик по умолчанию?",
+                "task": "Показать таблицу маршрутизации Linux",
+                "correctAnswers": [
+                        "ip r",
+                        "ip route",
+                        "ip route show",
+                        "route -n"
+                ],
+                "hint1": "Преподаватель: 'Команда ip r или ip route'",
+                "hint2": "ip r",
+                "explanation": "Выводит default via 172.16.1.1 dev enp7s1 и подсети."
+        },
+        {
+                "id": "teach_8",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "А где в Альте лежат настройки VLAN 100? Покажи мне содержимое файла options для интерфейса enp7s2.100.",
+                "task": "Просмотреть файл /etc/net/ifaces/enp7s2.100/options",
+                "correctAnswers": [
+                        "cat /etc/net/ifaces/enp7s2.100/options",
+                        "less /etc/net/ifaces/enp7s2.100/options"
+                ],
+                "hint1": "Преподаватель: 'cat /etc/net/ifaces/enp7s2.100/options'",
+                "hint2": "cat /etc/net/ifaces/enp7s2.100/options",
+                "explanation": "В options заданы BOOTPROTO=static, TYPE=vlan, VID=100, HOST=enp7s2."
+        },
+        {
+                "id": "teach_9",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Проверь, включен ли форвардинг пакетов IPv4 в ядре. Должна быть единица!",
+                "task": "Проверить форвардинг IPv4 в ядре через sysctl",
+                "correctAnswers": [
+                        "sysctl net.ipv4.ip_forward",
+                        "cat /proc/sys/net/ipv4/ip_forward"
+                ],
+                "hint1": "Преподаватель: 'sysctl net.ipv4...'",
+                "hint2": "sysctl net.ipv4.ip_forward",
+                "explanation": "net.ipv4.ip_forward = 1 означает, что машина работает как маршрутизатор."
+        },
+        {
+                "id": "teach_10",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Покажи мне правила NAT в iptables. Где твоё правило MASQUERADE?",
+                "task": "Показать правила таблицы NAT в iptables",
+                "correctAnswers": [
+                        "iptables -t nat -L",
+                        "iptables -t nat -vnL",
+                        "iptables -t nat -S",
+                        "iptables -t nat -L -n"
+                ],
+                "hint1": "Преподаватель: 'iptables с указанием таблицы -t nat и списка -L'",
+                "hint2": "iptables -t nat -L",
+                "explanation": "Выводит цепочку POSTROUTING с правилом MASQUERADE."
+        },
+        {
+                "id": "teach_11",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "А как твои правила iptables выживут после перезагрузки? Покажи мне список задач cron.",
+                "task": "Показать задачи пользователя root в crontab",
+                "correctAnswers": [
+                        "crontab -l"
+                ],
+                "hint1": "Преподаватель: 'Флаг -l (list) у утилиты crontab'",
+                "hint2": "crontab -l",
+                "explanation": "Показывает строчку @reboot /sbin/iptables-restore < /root/iptables_rules."
+        },
+        {
+                "id": "teach_12",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Перейдем к туннелю. Покажи мне файл options интерфейса туннеля gre1.",
+                "task": "Показать содержимое /etc/net/ifaces/gre1/options",
+                "correctAnswers": [
+                        "cat /etc/net/ifaces/gre1/options",
+                        "less /etc/net/ifaces/gre1/options"
+                ],
+                "hint1": "Преподаватель: 'cat /etc/net/ifaces/gre1/options'",
+                "hint2": "cat /etc/net/ifaces/gre1/options",
+                "explanation": "Показывает TUNLOCAL=172.16.1.2, TUNREMOTE=172.16.2.2, TUNMTU=1476."
+        },
+        {
+                "id": "teach_13",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Пингани удаленный конец GRE-туннеля на филиале (BR-RTR). Ровно 3 пакета.",
+                "task": "Пинг туннельного адреса BR-RTR (10.0.0.2)",
+                "correctAnswers": [
+                        "ping -c 3 10.0.0.2"
+                ],
+                "hint1": "Преподаватель: 'Адрес gre1 на BR-RTR равен 10.0.0.2, ключ -c 3'",
+                "hint2": "ping -c 3 10.0.0.2",
+                "explanation": "Проверяет работоспособность GRE-туннеля."
+        },
+        {
+                "id": "teach_14",
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "teacherSpeech": "Зайди в виртуальную консоль FRR (vtysh), проверим протокол динамической маршрутизации OSPF.",
+                "task": "Войти в консоль vtysh",
+                "correctAnswers": [
+                        "vtysh"
+                ],
+                "hint1": "Преподаватель: 'Утилита vtysh'",
+                "hint2": "vtysh",
+                "explanation": "Запускает общую оболочку FRRouting."
+        },
+        {
+                "id": "teach_15",
+                "host": "hq-rtr",
+                "prompt": "hq-rtr# ",
+                "teacherSpeech": "В vtysh: покажи мне таблицу соседей OSPF (neighbor). В каком состоянии сосед?",
+                "task": "Показать соседей OSPF в vtysh",
+                "correctAnswers": [
+                        "show ip ospf neighbor",
+                        "sh ip ospf neighbor",
+                        "sh ip ospf nei"
+                ],
+                "hint1": "Преподаватель: 'Команда show ip ospf neighbor'",
+                "hint2": "show ip ospf neighbor",
+                "explanation": "Сосед 10.0.0.2 должен быть в состоянии Full."
+        },
+        {
+                "id": "teach_16",
+                "host": "hq-rtr",
+                "prompt": "hq-rtr# ",
+                "teacherSpeech": "В vtysh: покажи мне только маршруты OSPF.",
+                "task": "Показать только маршруты OSPF",
+                "correctAnswers": [
+                        "show ip route ospf",
+                        "sh ip ro ospf"
+                ],
+                "hint1": "Преподаватель: 'show ip route ospf'",
+                "hint2": "show ip route ospf",
+                "explanation": "Выводит маршруты OSPF (буква O), в частности к сети 192.168.3.0/28."
+        },
+        {
+                "id": "teach_17",
+                "host": "hq-rtr",
+                "prompt": "hq-rtr# ",
+                "teacherSpeech": "Хорошо. Выйди из vtysh обратно в оболочку bash.",
+                "task": "Выйти из vtysh в bash",
+                "correctAnswers": [
+                        "exit",
+                        "quit",
+                        "q"
+                ],
+                "hint1": "Преподаватель: 'exit'",
+                "hint2": "exit",
+                "explanation": "Выход в стандартный root shell."
+        },
+        {
+                "id": "teach_18",
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "teacherSpeech": "Переходим на сервер HQ-SRV. Покажи статус службы dnsmasq. Она работает?",
+                "task": "Показать статус службы dnsmasq",
+                "correctAnswers": [
+                        "systemctl status dnsmasq",
+                        "service dnsmasq status"
+                ],
+                "hint1": "Преподаватель: 'systemctl status dnsmasq'",
+                "hint2": "systemctl status dnsmasq",
+                "explanation": "Служба должна быть active (running)."
+        },
+        {
+                "id": "teach_19",
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "teacherSpeech": "Проверь утилитой ss, слушает ли dnsmasq UDP-порт 53.",
+                "task": "Проверить UDP-порт 53 с помощью утилиты ss",
+                "correctAnswers": [
+                        "ss -ulnp | grep dnsmasq",
+                        "ss -ulnp | grep 53",
+                        "ss -ulnp",
+                        "ss -unlp | grep dnsmasq"
+                ],
+                "hint1": "Преподаватель: 'ss -ulnp с фильтром grep dnsmasq'",
+                "hint2": "ss -ulnp | grep dnsmasq",
+                "explanation": "Показывает сокет на порту 53."
+        },
+        {
+                "id": "teach_20",
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "teacherSpeech": "Пингани внешнее имя ya.ru с сервера (3 пакета). Проверим, работает ли forwarder 77.88.8.8.",
+                "task": "Пинг ya.ru (3 пакета)",
+                "correctAnswers": [
+                        "ping -c 3 ya.ru",
+                        "ping -c 3 yandex.ru",
+                        "ping ya.ru"
+                ],
+                "hint1": "Преподаватель: 'ping -c 3 ya.ru'",
+                "hint2": "ping -c 3 ya.ru",
+                "explanation": "Проверяет рекурсивное разрешение внешних имен."
+        },
+        {
+                "id": "teach_21",
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "teacherSpeech": "Перейди на клиентскую машину HQ-CLI. Сбрось старый адрес DHCP и запроси новый на enp0s3.200.",
+                "task": "Сбросить и запросить IP по DHCP на HQ-CLI",
+                "correctAnswers": [
+                        "dhclient -r && dhclient enp0s3.200",
+                        "dhclient -r; dhclient enp0s3.200",
+                        "dhclient enp0s3.200",
+                        "dhclient -r"
+                ],
+                "hint1": "Преподаватель: 'dhclient -r для сброса, затем dhclient enp0s3.200'",
+                "hint2": "dhclient -r && dhclient enp0s3.200",
+                "explanation": "Освобождает и получает IP в диапазоне 192.168.2.2–2.14."
+        },
+        {
+                "id": "teach_22",
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "teacherSpeech": "Покажи мне содержимое файла /etc/resolv.conf на клиенте. Какой там DNS-сервер указан?",
+                "task": "Показать файл /etc/resolv.conf на клиенте",
+                "correctAnswers": [
+                        "cat /etc/resolv.conf",
+                        "less /etc/resolv.conf"
+                ],
+                "hint1": "Преподаватель: 'cat /etc/resolv.conf'",
+                "hint2": "cat /etc/resolv.conf",
+                "explanation": "Должен быть nameserver 192.168.1.2."
+        },
+        {
+                "id": "teach_23",
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "teacherSpeech": "Финальная проверка: подключись с клиента по SSH к серверу HQ-SRV по доменному имени hq-srv.au-team.irpo на порт 2026 под пользователем sshuser.",
+                "task": "SSH подключение к hq-srv.au-team.irpo:2026",
+                "correctAnswers": [
+                        "ssh sshuser@hq-srv.au-team.irpo -p 2026",
+                        "ssh -p 2026 sshuser@hq-srv.au-team.irpo"
+                ],
+                "hint1": "Преподаватель: 'ssh sshuser@hq-srv.au-team.irpo -p 2026'",
+                "hint2": "ssh sshuser@hq-srv.au-team.irpo -p 2026",
+                "explanation": "Проверяет разрешение DNS, маршрутизацию между VLAN и порт SSH 2026."
+        },
+        {
+                "id": "teach_24",
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "teacherSpeech": "Отлично! Напоследок перезапусти службу сети systemctl restart network и покажи, что всё поднялось.",
+                "task": "Перезапустить службу сети network",
+                "correctAnswers": [
+                        "systemctl restart network",
+                        "service network restart"
+                ],
+                "hint1": "Преподаватель: 'systemctl restart network'",
+                "hint2": "systemctl restart network",
+                "explanation": "Перезапуск подсистемы /etc/net в ОС Альт."
+        }
+]
 };

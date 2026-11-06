@@ -2,8 +2,11 @@
 
 class TopologyManager {
     constructor() {
-        this.quizIndex = 0;
-        this.quizScore = 0;
+        this.quizIndex = parseInt(localStorage.getItem('alt_topo_quiz_index') || '0', 10);
+        this.quizScore = parseInt(localStorage.getItem('alt_topo_quiz_score') || '0', 10);
+        if (this.quizIndex >= APP_DATA.topologyQuiz.length) {
+            this.quizIndex = 0;
+        }
         this.selectedNode = null;
 
         this.initDOMElements();
@@ -50,6 +53,7 @@ class TopologyManager {
         // Кнопка следующего вопроса квиза
         this.quizNextBtn?.addEventListener('click', () => {
             this.quizIndex = (this.quizIndex + 1) % APP_DATA.topologyQuiz.length;
+            localStorage.setItem('alt_topo_quiz_index', this.quizIndex.toString());
             this.loadQuizQuestion();
         });
     }
@@ -161,6 +165,7 @@ class TopologyManager {
         this.quizResult.classList.remove('hidden');
         if (chosenIdx === q.answer) {
             this.quizScore++;
+            localStorage.setItem('alt_topo_quiz_score', this.quizScore.toString());
             this.quizResult.innerHTML = `
                 <div class="alert alert-success">
                     <b>Верно! ✔</b> ${q.expl}

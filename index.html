@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тренажёр стенда ОС «Альт» — Практики 2–8 и Защита</title>
+    <title>Тренажёр стенда ОС «Альт» — Практики и Сдача Экзамена</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,16 +22,19 @@
             <!-- Вкладки навигации -->
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-target="sec-terminal">
-                    💻 <span>Тренажёр команд</span>
+                    💻 <span>Практика (Пошаговая)</span>
+                </button>
+                <button class="nav-tab" data-target="sec-teacher">
+                    🧑‍🏫 <span>Сдача у преподавателя</span>
                 </button>
                 <button class="nav-tab" data-target="sec-topology">
                     🗺️ <span>Карта сети и Адреса</span>
                 </button>
                 <button class="nav-tab" data-target="sec-defense">
-                    🎓 <span>Вопросы преподавателя</span>
+                    🎓 <span>Теория и Ответы</span>
                 </button>
                 <button class="nav-tab" data-target="sec-reference">
-                    📋 <span>Шпаргалка и Конфиги</span>
+                    📋 <span>Шпаргалка</span>
                 </button>
             </nav>
         </div>
@@ -39,7 +42,7 @@
 
     <main class="main-content">
 
-        <!-- РАЗДЕЛ 1: ТРЕНАЖЁР ВВОДА КОМАНД (ТЕРМИНАЛ) -->
+        <!-- РАЗДЕЛ 1: ПОШАГОВЫЙ ТРЕНАЖЁР ПРАКТИК (2–8) -->
         <section id="sec-terminal" class="app-section active">
             <!-- Верхняя панель управления тренажёром -->
             <div class="trainer-toolbar">
@@ -66,7 +69,16 @@
                         <span class="text-muted">Серия:</span>
                         <b id="stat-term-streak" class="text-green">0 🔥</b>
                     </div>
+                    <button id="btn-reset-term-progress" class="btn btn-sm btn-outline text-muted" title="Сбросить прогресс практик">
+                        🔄 Сброс
+                    </button>
                 </div>
+            </div>
+
+            <!-- Навигатор заданий (список номеров с галочками) -->
+            <div class="task-nav-container">
+                <span class="task-nav-label">Задания:</span>
+                <div id="term-task-nav" class="task-nav-pills"></div>
             </div>
 
             <!-- Блок текущего задания -->
@@ -98,12 +110,79 @@
                 </div>
             </div>
             <div class="mt-2 text-muted text-sm">
-                * Поддерживаются клавиши ↑ / ↓ для навигации по истории команд. Команда <code>clear</code> очищает консоль, <code>help</code> — справка.
+                * Поддерживаются клавиши ↑ / ↓ для навигации по истории команд. <code>clear</code> очищает консоль, <code>help</code> — справка.
             </div>
         </section>
 
 
-        <!-- РАЗДЕЛ 2: КАРТА СЕТИ, АДРЕСАЦИЯ И БЛИЦ-ТЕСТ -->
+        <!-- РАЗДЕЛ 2: СДАЧА У ПРЕПОДАВАТЕЛЯ (РЕАЛИСТИЧНЫЙ ЭКЗАМЕНАТОР) -->
+        <section id="sec-teacher" class="app-section">
+            <!-- Карточка диалога с преподавателем -->
+            <div class="teacher-speech-card">
+                <div class="teacher-avatar-box">👨‍🏫</div>
+                <div class="teacher-speech-bubble">
+                    <div class="d-flex justify-between align-center mb-1">
+                        <div class="teacher-name-tag">Экзаменатор / Преподаватель</div>
+                        <span id="teacher-host-badge" class="badge" style="background:#10b98122; color:#10b981; border:1px solid #10b981">
+                            HQ-RTR
+                        </span>
+                    </div>
+                    <div id="teacher-speech-text" class="teacher-quote">
+                        «Так, покажи мне текущее системное время и какой часовой пояс сейчас выставлен на этом маршрутизаторе.»
+                    </div>
+                    <div id="teacher-task-goal" class="teacher-goal-text">
+                        Цель: Показать системное время и часовой пояс
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель действий преподавателя -->
+            <div class="teacher-actions-bar">
+                <div class="d-flex gap-2 align-center">
+                    <span id="teacher-task-counter" class="text-sm text-muted">Вопрос 1 из 24</span>
+                    <span class="text-muted text-sm">| Сдано:</span>
+                    <b id="stat-teacher-completed" class="text-green text-sm">0 / 24</b>
+                </div>
+                <div class="d-flex gap-2 align-center flex-wrap">
+                    <button id="teacher-btn-hint" class="btn btn-sm btn-outline text-yellow">
+                        💡 Подсказка преподавателя
+                    </button>
+                    <button id="teacher-btn-answer" class="btn btn-sm btn-outline text-cyan">
+                        👁 Показать команду
+                    </button>
+                    <button id="teacher-btn-paste" class="btn btn-sm btn-outline">
+                        📋 Вставить в консоль
+                    </button>
+                    <button id="btn-reset-teacher-progress" class="btn btn-sm btn-outline text-muted" title="Сбросить прогресс сдачи">
+                        🔄 Сброс
+                    </button>
+                </div>
+            </div>
+
+            <!-- Навигатор вопросов преподавателя -->
+            <div class="task-nav-container">
+                <span class="task-nav-label">Вопросы:</span>
+                <div id="teacher-task-nav" class="task-nav-pills"></div>
+            </div>
+
+            <!-- Контейнер подсказки преподавателя -->
+            <div id="teacher-hint-box" class="hint-container hidden"></div>
+
+            <!-- Терминал режима сдачи -->
+            <div class="terminal-window">
+                <div id="teacher-term-output"></div>
+                <div class="terminal-input-row">
+                    <span id="teacher-term-prompt" class="prompt">root@hq-rtr:~# </span>
+                    <input type="text" id="teacher-term-input" class="term-input" autocomplete="off" spellcheck="false" placeholder="Введите команду для ответа преподавателю...">
+                </div>
+            </div>
+            <div class="mt-2 text-muted text-sm">
+                * Преподаватель оценивает каждую команду. При ошибке он подскажет, где вы ошиблись.
+            </div>
+        </section>
+
+
+        <!-- РАЗДЕЛ 3: КАРТА СЕТИ, АДРЕСАЦИЯ И БЛИЦ-ТЕСТ -->
         <section id="sec-topology" class="app-section">
             <div class="topo-layout">
                 <!-- Левая колонка: Интерактивная схема и таблица сетей -->
@@ -238,7 +317,7 @@
                         <h3 class="text-yellow">🎯 Блиц-тренажёр адресов</h3>
                         <span id="quiz-score-display" class="badge badge-topic">Счет: 0</span>
                     </div>
-                    <p class="text-sm text-muted mb-3">Проверьте, помните ли вы, какие сети и адреса куда ведут, чтобы уверенно отвечать на вопросы преподавателя.</p>
+                    <p class="text-sm text-muted mb-3">Проверьте, помните ли вы, какие сети и адреса куда ведут, чтобы уверенно отвечать преподавателю.</p>
 
                     <div id="topo-quiz-card">
                         <h4 id="quiz-question" class="mb-3 text-cyan">Вопрос...</h4>
@@ -251,13 +330,13 @@
         </section>
 
 
-        <!-- РАЗДЕЛ 3: ВОПРОСЫ ПРЕПОДАВАТЕЛЯ ПРИ ЗАЩИТЕ РАБОТ -->
+        <!-- РАЗДЕЛ 4: ТЕОРИЯ И ВОПРОСЫ ПРЕПОДАВАТЕЛЯ ПРИ ЗАЩИТЕ РАБОТ -->
         <section id="sec-defense" class="app-section">
             <div class="qa-toolbar">
                 <div class="d-flex gap-2 align-center flex-wrap">
                     <label for="qa-topic-filter" class="text-sm text-muted">Тема:</label>
                     <select id="qa-topic-filter" class="select-custom">
-                        <option value="all">Все вопросы преподавателя</option>
+                        <option value="all">Все теоретические вопросы</option>
                         <option value="2">Практика 2: FQDN и часовые пояса</option>
                         <option value="3">Практика 3: Подсистема /etc/net в Альт</option>
                         <option value="4">Практика 4: VLAN 802.1Q и изоляция</option>
@@ -283,7 +362,7 @@
         </section>
 
 
-        <!-- РАЗДЕЛ 4: ШПАРГАЛКА И ГОТОВЫЕ КОНФИГИ -->
+        <!-- РАЗДЕЛ 5: ШПАРГАЛКА И ГОТОВЫЕ КОНФИГИ -->
         <section id="sec-reference" class="app-section">
             <div class="topo-layout">
                 <div>
@@ -352,6 +431,7 @@
     <!-- Скрипты -->
     <script src="js/data.js"></script>
     <script src="js/terminal.js"></script>
+    <script src="js/teacher.js"></script>
     <script src="js/topology.js"></script>
     <script src="js/qa.js"></script>
     <script src="js/app.js"></script>

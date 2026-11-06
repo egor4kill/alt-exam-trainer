@@ -1,19 +1,23 @@
-// Модуль интерактивного терминала-тренажёра
+// Модуль интерактивного терминала-тренажёра (Практики 2–8)
 
 class TerminalTrainer {
     constructor() {
-        this.currentTaskIndex = 0;
-        this.filteredTasks = [...APP_DATA.commandTasks];
-        this.currentTopic = "all";
+        this.completedTasks = new Set(JSON.parse(localStorage.getItem('alt_completed_tasks_v2') || '[]'));
         this.history = [];
         this.historyIndex = -1;
-        this.score = 0;
         this.streak = 0;
-        this.completedTasks = new Set(JSON.parse(localStorage.getItem('alt_completed_tasks') || '[]'));
+
+        // Восстанавливаем выбранную тему
+        const savedTopic = localStorage.getItem('alt_term_current_topic') || 'all';
+        this.currentTopic = savedTopic;
 
         this.initDOMElements();
+        if (this.topicSelect) {
+            this.topicSelect.value = this.currentTopic;
+        }
+
         this.bindEvents();
-        this.filterTasks("all");
+        this.filterTasks(this.currentTopic, false);
     }
 
     initDOMElements() {
@@ -31,6 +35,8 @@ class TerminalTrainer {
         this.topicSelect = document.getElementById('terminal-topic-filter');
         this.statCompleted = document.getElementById('stat-term-completed');
         this.statStreak = document.getElementById('stat-term-streak');
+        this.taskNavContainer = document.getElementById('term-task-nav');
+        this.btnReset = document.getElementById('btn-reset-term-progress');
     }
 
     bindEvents() {
@@ -56,32 +62,93 @@ class TerminalTrainer {
 
         // Смена темы
         this.topicSelect?.addEventListener('change', (e) => {
-            this.filterTasks(e.target.value);
+            this.filterTasks(e.target.value, true);
+        });
+
+        // Кнопка сброса прогресса
+        this.btnReset?.addEventListener('click', () => {
+            if (confirm("Вы уверены, что хотите сбросить прогресс выполнения практик?")) {
+                this.completedTasks.clear();
+                localStorage.removeItem('alt_completed_tasks_v2');
+                for (let i = 2; i <= 8; i++) {
+                    localStorage.removeItem(`alt_term_index_${i}`);
+                }
+                localStorage.removeItem('alt_term_index_all');
+                this.currentTaskIndex = 0;
+                this.streak = 0;
+                this.renderTaskNavigator();
+                this.loadCurrentTask();
+                this.updateStats();
+            }
         });
 
         // Клик по окну терминала переносит фокус в инпут
-        document.querySelector('.terminal-window')?.addEventListener('click', () => {
+        document.querySelector('#sec-terminal .terminal-window')?.addEventListener('click', () => {
             this.termInput.focus();
         });
     }
 
-    filterTasks(topicId) {
+    filterTasks(topicId, resetIndex = false) {
         this.currentTopic = topicId;
+        localStorage.setItem('alt_term_current_topic', topicId);
+
         if (topicId === "all") {
             this.filteredTasks = [...APP_DATA.commandTasks];
         } else {
             const tid = parseInt(topicId, 10);
             this.filteredTasks = APP_DATA.commandTasks.filter(t => t.topicId === tid);
         }
-        this.currentTaskIndex = 0;
+
+        // Восстановление индекса задачи
+        const savedIndexKey = `alt_term_index_${topicId}`;
+        const savedIndex = parseInt(localStorage.getItem(savedIndexKey) || '0', 10);
+
+        if (resetIndex) {
+            this.currentTaskIndex = 0;
+        } else if (savedIndex >= 0 && savedIndex < this.filteredTasks.length) {
+            this.currentTaskIndex = savedIndex;
+            // Если сохраненное задание уже сделано, переходим к первому нерешенному
+            if (this.completedTasks.has(this.filteredTasks[this.currentTaskIndex]?.id)) {
+                const firstUnsolved = this.filteredTasks.findIndex(t => !this.completedTasks.has(t.id));
+                if (firstUnsolved !== -1) {
+                    this.currentTaskIndex = firstUnsolved;
+                }
+            }
+        } else {
+            this.currentTaskIndex = 0;
+        }
+
+        this.renderTaskNavigator();
         this.loadCurrentTask();
         this.updateStats();
     }
 
+    renderTaskNavigator() {
+        if (!this.taskNavContainer) return;
+        this.taskNavContainer.innerHTML = '';
+
+        this.filteredTasks.forEach((task, idx) => {
+            const isDone = this.completedTasks.has(task.id);
+            const isActive = idx === this.currentTaskIndex;
+
+            const pill = document.createElement('button');
+            pill.className = `task-pill ${isDone ? 'completed' : ''} ${isActive ? 'active' : ''}`;
+            pill.title = task.task;
+            pill.innerHTML = isDone ? `✔ ${idx + 1}` : `${idx + 1}`;
+            pill.addEventListener('click', () => {
+                this.currentTaskIndex = idx;
+                this.saveState();
+                this.renderTaskNavigator();
+                this.loadCurrentTask();
+            });
+            this.taskNavContainer.appendChild(pill);
+        });
+    }
+
     loadCurrentTask() {
-        if (this.filteredTasks.length === 0) {
-            this.taskTitle.textContent = "Нет заданий в этой категории";
-            this.taskDesc.textContent = "";
+        if (!this.filteredTasks || this.filteredTasks.length === 0) {
+            if (this.taskTitle) this.taskTitle.textContent = "Нет заданий в этой категории";
+            if (this.taskDesc) this.taskDesc.textContent = "";
             return;
         }
 
@@ -99,10 +166,12 @@ class TerminalTrainer {
         this.termInput.value = '';
         this.termInput.focus();
 
-        // Очищаем терминал и выводим вводное сообщение
+        const isDone = this.completedTasks.has(task.id);
+
         this.termOutput.innerHTML = `
             <div class="term-line sys-msg">
                 <span class="text-cyan">[Стенд Proxmox VE]</span> Виртуальная машина: <b class="text-green">${task.host.toUpperCase()}</b>
+                ${isDone ? '<span class="text-success font-bold ml-2">✔ (Выполнено)</span>' : ''}
             </div>
             <div class="term-line sys-msg">
                 <span class="text-yellow">Цель:</span> ${task.task}
@@ -111,36 +180,35 @@ class TerminalTrainer {
                 Введите команду и нажмите <b>Enter</b>. Доступны подсказки кнопками вверху.
             </div>
         `;
+
+        this.renderTaskNavigator();
     }
 
     normalizeCommand(cmd) {
         return cmd
             .trim()
             .replace(/\s+/g, ' ')
-            .replace(/["']/g, "'") // унифицируем кавычки
-            .replace(/\s*>\s*/g, ' > ') // пробелы вокруг редиректа
-            .replace(/\s*\|\s*/g, ' | ') // пробелы вокруг пайпа
-            .replace(/;\s*$/, ''); // удаляем точку с запятой на конце если есть
+            .replace(/["']/g, "'")
+            .replace(/\s*>\s*/g, ' > ')
+            .replace(/\s*\|\s*/g, ' | ')
+            .replace(/;\s*$/, '');
     }
 
     handleCommand(rawCmd) {
         const cmd = rawCmd.trim();
         if (!cmd) return;
 
-        // Добавляем в историю
         this.history.push(cmd);
         this.historyIndex = this.history.length;
 
         const currentTask = this.filteredTasks[this.currentTaskIndex];
         const normUser = this.normalizeCommand(cmd);
 
-        // Отображаем введенную команду в выводе
         const line = document.createElement('div');
         line.className = 'term-line';
         line.innerHTML = `<span class="prompt">${currentTask.prompt}</span><span class="user-cmd">${this.escapeHtml(cmd)}</span>`;
         this.termOutput.appendChild(line);
 
-        // Системные вспомогательные команды
         if (normUser === 'clear') {
             this.termOutput.innerHTML = '';
             this.termInput.value = '';
@@ -152,7 +220,6 @@ class TerminalTrainer {
             return;
         }
 
-        // Проверяем правильность
         const isCorrect = currentTask.correctAnswers.some(ans => {
             const normAns = this.normalizeCommand(ans);
             return normUser === normAns;
@@ -170,9 +237,8 @@ class TerminalTrainer {
 
     handleSuccess(task) {
         this.streak++;
-        this.score += 10;
         this.completedTasks.add(task.id);
-        localStorage.setItem('alt_completed_tasks', JSON.stringify([...this.completedTasks]));
+        this.saveState();
 
         this.printOutput(`✔ ВЕРНО! [OK]`, "text-success font-bold");
         if (task.explanation) {
@@ -180,11 +246,12 @@ class TerminalTrainer {
         }
 
         this.updateStats();
+        this.renderTaskNavigator();
 
-        // Переход к следующему заданию через небольшую паузу
         setTimeout(() => {
             if (this.currentTaskIndex < this.filteredTasks.length - 1) {
                 this.currentTaskIndex++;
+                this.saveState();
                 this.loadCurrentTask();
             } else {
                 this.printOutput("🎉 ПОЗДРАВЛЯЕМ! Все задания этого раздела успешно пройдены!", "text-yellow font-bold");
@@ -249,10 +316,15 @@ class TerminalTrainer {
     }
 
     scrollToBottom() {
-        const win = document.querySelector('.terminal-window');
+        const win = document.querySelector('#sec-terminal .terminal-window');
         if (win) {
             win.scrollTop = win.scrollHeight;
         }
+    }
+
+    saveState() {
+        localStorage.setItem('alt_completed_tasks_v2', JSON.stringify([...this.completedTasks]));
+        localStorage.setItem(`alt_term_index_${this.currentTopic}`, this.currentTaskIndex.toString());
     }
 
     updateStats() {

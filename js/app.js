@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализация модулей
     window.terminalTrainer = new TerminalTrainer();
+    window.teacherTrainer = new TeacherExamTrainer();
     window.topologyManager = new TopologyManager();
     window.examQAManager = new ExamQAManager();
 
@@ -34,9 +35,11 @@ function initTabs() {
                 targetEl.classList.add('active');
             }
 
-            // Если открыли терминал — фокус в инпут
+            // Фокус в инпут при открытии консоли
             if (targetSection === 'sec-terminal') {
                 document.getElementById('terminal-input')?.focus();
+            } else if (targetSection === 'sec-teacher') {
+                document.getElementById('teacher-term-input')?.focus();
             }
         });
     });
