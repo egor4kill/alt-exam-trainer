@@ -82,6 +82,34 @@ class TerminalTrainer {
             }
         });
 
+        // Кнопка запуска (для мобилок)
+        document.getElementById('btn-term-run')?.addEventListener('click', () => {
+            this.handleCommand(this.termInput.value);
+        });
+
+        // Мобильные быстрые клавиши-чипы
+        document.querySelectorAll('#sec-terminal .key-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = chip.getAttribute('data-key');
+                const action = chip.getAttribute('data-action');
+                if (action === 'paste') {
+                    const currentTask = this.filteredTasks[this.currentTaskIndex];
+                    if (currentTask) this.pasteAnswer(currentTask.correctAnswers[0]);
+                } else if (action === 'clear') {
+                    this.termInput.value = '';
+                    this.termInput.focus();
+                } else if (key) {
+                    const start = this.termInput.selectionStart ?? this.termInput.value.length;
+                    const end = this.termInput.selectionEnd ?? this.termInput.value.length;
+                    const val = this.termInput.value;
+                    this.termInput.value = val.substring(0, start) + key + val.substring(end);
+                    this.termInput.focus();
+                    this.termInput.setSelectionRange(start + key.length, start + key.length);
+                }
+            });
+        });
+
         // Клик по окну терминала переносит фокус в инпут
         document.querySelector('#sec-terminal .terminal-window')?.addEventListener('click', () => {
             this.termInput.focus();

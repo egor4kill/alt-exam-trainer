@@ -79,6 +79,33 @@ class TeacherExamTrainer {
             }
         });
 
+        // Кнопка запуска (для мобилок)
+        document.getElementById('teacher-btn-run')?.addEventListener('click', () => {
+            this.handleCommand(this.termInput.value);
+        });
+
+        // Мобильные быстрые клавиши-чипы
+        document.querySelectorAll('#sec-teacher .key-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = chip.getAttribute('data-key');
+                const action = chip.getAttribute('data-action');
+                if (action === 'paste') {
+                    this.pasteCurrentAnswer();
+                } else if (action === 'clear') {
+                    this.termInput.value = '';
+                    this.termInput.focus();
+                } else if (key) {
+                    const start = this.termInput.selectionStart ?? this.termInput.value.length;
+                    const end = this.termInput.selectionEnd ?? this.termInput.value.length;
+                    const val = this.termInput.value;
+                    this.termInput.value = val.substring(0, start) + key + val.substring(end);
+                    this.termInput.focus();
+                    this.termInput.setSelectionRange(start + key.length, start + key.length);
+                }
+            });
+        });
+
         document.querySelector('#sec-teacher .terminal-window')?.addEventListener('click', () => {
             this.termInput.focus();
         });
