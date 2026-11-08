@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Тренажёр стенда ОС «Альт» — Практики и Экзамен Proxmox VE</title>
+    <title>Тренажёр стенда ОС «Альт» — Практики, Аварии и Экзамен Proxmox VE</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -19,24 +19,37 @@
                 </div>
             </div>
 
-            <!-- Вкладки навигации (Гарантированно работают клики и свайп) -->
-            <nav class="nav-tabs" id="main-nav-tabs">
-                <button class="nav-tab active" data-target="sec-terminal" id="tab-btn-terminal">
-                    💻 <span>Практика 2–8</span>
-                </button>
-                <button class="nav-tab" data-target="sec-teacher" id="tab-btn-teacher">
-                    🧑‍🏫 <span>Сдача у преподавателя</span> <span class="badge-mini">Экзамен</span>
-                </button>
-                <button class="nav-tab" data-target="sec-topology" id="tab-btn-topology">
-                    🗺️ <span>Карта сети</span>
-                </button>
-                <button class="nav-tab" data-target="sec-defense" id="tab-btn-defense">
-                    🎓 <span>Теория и Ответы</span>
-                </button>
-                <button class="nav-tab" data-target="sec-reference" id="tab-btn-reference">
-                    📋 <span>Шпаргалка</span>
-                </button>
-            </nav>
+            <!-- Контейнер навигации с кнопками прокрутки и горизонтальным скроллом -->
+            <div class="nav-tabs-wrapper">
+                <button class="nav-scroll-btn nav-scroll-left" id="nav-scroll-btn-left" aria-label="Прокрутить вкладки влево" title="Прокрутить влево">◀</button>
+                <nav class="nav-tabs" id="main-nav-tabs">
+                    <button class="nav-tab active" data-target="sec-terminal" id="tab-btn-terminal">
+                        💻 <span>Практика 2–8</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-stand" id="tab-btn-stand">
+                        🖥️ <span>Стенд Proxmox</span> <span class="badge-mini" style="background:#10b98133; color:#10b981; border:1px solid #10b981">6 ВМ</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-troubleshoot" id="tab-btn-troubleshoot">
+                        🚨 <span>Аварии & Сценарии</span> <span class="badge-mini badge-danger-mini">Траблшутинг</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-exam" id="tab-btn-exam">
+                        ⏱️ <span>Экзамен</span> <span class="badge-mini badge-warning-mini">15 мин</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-teacher" id="tab-btn-teacher">
+                        🧑‍🏫 <span>Сдача у преподавателя</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-defense" id="tab-btn-defense">
+                        🎓 <span>Теория и Ответы</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-topology" id="tab-btn-topology">
+                        🗺️ <span>Карта сети</span>
+                    </button>
+                    <button class="nav-tab" data-target="sec-reference" id="tab-btn-reference">
+                        📋 <span>Шпаргалка</span>
+                    </button>
+                </nav>
+                <button class="nav-scroll-btn nav-scroll-right" id="nav-scroll-btn-right" aria-label="Прокрутить вкладки вправо" title="Прокрутить вправо">▶</button>
+            </div>
         </div>
     </header>
 
@@ -86,7 +99,7 @@
             <!-- Блок текущего задания -->
             <div class="task-header-box">
                 <div class="task-info-left">
-                    <div class="d-flex align-center gap-2 mb-1">
+                    <div class="d-flex align-center gap-2 mb-1 flex-wrap">
                         <span id="task-badge" class="badge badge-topic">Тема 2</span>
                         <span id="task-counter" class="text-muted text-sm">1 / 97</span>
                     </div>
@@ -109,7 +122,41 @@
             <!-- Контейнер подсказки -->
             <div id="hint-box" class="hint-container hidden"></div>
 
-            <!-- Настоящее окно консоли Linux / Proxmox VE noVNC -->
+            <!-- Панель виртуальных машин Proxmox в тренажёре практик (Стенд 6 ВМ) -->
+            <div class="practice-cluster-bar mb-2">
+                <div class="d-flex justify-between align-center flex-wrap gap-2 mb-1">
+                    <div class="d-flex align-center gap-2">
+                        <span class="pve-cluster-badge text-xs">⚡ Proxmox VE 8.2 (Кластер):</span>
+                        <span class="text-xs text-muted">Переключайтесь между узлами для проверки связности и настроек:</span>
+                    </div>
+                    <div id="practice-vm-inspect-banner" class="hidden">
+                        <span class="badge badge-warning text-xs">👁️ Свободный режим инспекции</span>
+                        <button id="btn-return-to-task" class="btn btn-xs btn-outline text-cyan ml-1">Вернуться к заданию ↵</button>
+                    </div>
+                </div>
+                <div class="pve-vms-bar" id="practice-vms-bar">
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="isp">
+                        🌐 <b>10601: ISP</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="hq-rtr">
+                        🏢 <b>10602: HQ-RTR</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="br-rtr">
+                        🏬 <b>10605: BR-RTR</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="hq-srv">
+                        🖥️ <b>10603: HQ-SRV</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="br-srv">
+                        🖥️ <b>10606: BR-SRV</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab practice-vm-tab" data-vm="hq-cli">
+                        💻 <b>10604: HQ-CLI</b> <span class="vm-status-dot"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Окно консоли Linux / Proxmox VE noVNC -->
             <div class="terminal-window">
                 <div class="terminal-titlebar">
                     <div class="win-dots">
@@ -136,26 +183,364 @@
                 </div>
             </div>
 
-            <!-- Мобильная полоса быстрых клавиш -->
+            <!-- Мобильная полоса спецсимволов и Tab (без готовых ответов) -->
             <div class="mobile-keyboard-bar">
-                <span class="mobile-bar-label">Спецсимволы:</span>
+                <span class="mobile-bar-label">Клавиши:</span>
                 <button class="key-chip" data-key="/">/</button>
                 <button class="key-chip" data-key="-">-</button>
                 <button class="key-chip" data-key="_">_</button>
+                <button class="key-chip" data-key=".">.</button>
+                <button class="key-chip" data-key=":">:</button>
+                <button class="key-chip" data-key="~">~</button>
+                <button class="key-chip" data-key="&quot;">"</button>
+                <button class="key-chip" data-key="'">'</button>
                 <button class="key-chip" data-key=">">&gt;</button>
                 <button class="key-chip" data-key="|">|</button>
-                <button class="key-chip" data-key=";">;</button>
-                <button class="key-chip" data-key="'">'</button>
-                <button class="key-chip text-cyan" data-key="ip -br -c a">ip -br -c a</button>
-                <button class="key-chip text-yellow" data-key="systemctl restart network">restart net</button>
-                <button class="key-chip btn-mobile-paste-chip" data-action="paste">📋 Вставить ответ</button>
+                <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
                 <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
             </div>
         </section>
 
 
         <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 2: СДАЧА У ПРЕПОДАВАТЕЛЯ (РЕАЛИСТИЧНЫЙ ЭКЗАМЕНАТОР)          -->
+        <!-- РАЗДЕЛ: ЖИВОЙ СТЕНД PROXMOX VE (6 ВИРТУАЛЬНЫХ МАШИН)              -->
+        <!-- =================================================================== -->
+        <section id="sec-stand" class="app-section">
+            <!-- Верхняя панель переключения виртуальных машин (Proxmox VE Cluster Bar) -->
+            <div class="pve-cluster-toolbar mb-3">
+                <div class="d-flex justify-between align-center flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-center gap-2">
+                        <span class="pve-cluster-badge">⚡ Proxmox VE 8.2 (au-team)</span>
+                        <span class="text-xs text-muted">Переключайтесь между консолями 6 виртуальных машин стенда в 1 клик:</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="stand-btn-sync" class="btn btn-xs btn-outline text-green" title="Применить результаты решённых практик к виртуальным машинам">
+                            ⚡ Синхронизировать с решёнными практиками
+                        </button>
+                        <button id="stand-btn-reset" class="btn btn-xs btn-outline text-danger" title="Сбросить все 6 ВМ к заводским настройкам">
+                            🔄 Сброс всех 6 ВМ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pve-vms-bar">
+                    <button class="pve-vm-tab active" data-vm="hq-rtr">
+                        🏢 <b>10602: HQ-RTR</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab" data-vm="isp">
+                        🌐 <b>10601: ISP</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab" data-vm="br-rtr">
+                        🏬 <b>10605: BR-RTR</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab" data-vm="hq-srv">
+                        🖥️ <b>10603: HQ-SRV</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab" data-vm="br-srv">
+                        🖥️ <b>10606: BR-SRV</b> <span class="vm-status-dot"></span>
+                    </button>
+                    <button class="pve-vm-tab" data-vm="hq-cli">
+                        💻 <b>10604: HQ-CLI</b> <span class="vm-status-dot"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Двухколоночный макет: Слева терминал noVNC, справа живой инспектор состояния -->
+            <div class="stand-layout-grid">
+                <!-- Левая колонка: Терминал выбранной ВМ -->
+                <div class="stand-terminal-area">
+                    <div class="terminal-window" id="stand-term-window">
+                        <div class="terminal-titlebar">
+                            <div class="win-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+                            <div class="win-title" id="stand-win-title">HQ-RTR — noVNC Console</div>
+                            <div class="win-status"><span class="status-dot"></span> Online (KVM)</div>
+                        </div>
+
+                        <div id="stand-term-output" class="terminal-body-content" style="min-height: 380px;"></div>
+
+                        <div class="terminal-input-row">
+                            <span id="stand-term-prompt" class="prompt">root@hq-rtr:~# </span>
+                            <input type="text" id="stand-term-input" class="term-input" 
+                                   autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
+                                   placeholder="Наберите команду... (Tab дополняет пути /etc/net/ifaces)">
+                            <button id="stand-btn-run" class="btn btn-sm btn-success btn-mobile-run">↵</button>
+                        </div>
+                    </div>
+
+                    <!-- Мобильная полоса ввода спецсимволов и Tab -->
+                    <div class="mobile-keyboard-bar">
+                        <span class="mobile-bar-label">Клавиши:</span>
+                        <button class="key-chip" data-key="/">/</button>
+                        <button class="key-chip" data-key="-">-</button>
+                        <button class="key-chip" data-key="_">_</button>
+                        <button class="key-chip" data-key=".">.</button>
+                        <button class="key-chip" data-key=":">:</button>
+                        <button class="key-chip" data-key="~">~</button>
+                        <button class="key-chip" data-key="&quot;">"</button>
+                        <button class="key-chip" data-key="'">'</button>
+                        <button class="key-chip" data-key=">">&gt;</button>
+                        <button class="key-chip" data-key="|">|</button>
+                        <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
+                        <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
+                    </div>
+                </div>
+
+                <!-- Правая колонка: Инспектор состояния текущей машины -->
+                <div id="stand-inspector-box" class="stand-inspector-area"></div>
+            </div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- РАЗДЕЛ 2: АВАРИИ, ЧТЕНИЕ ВЫВОДА И СКВОЗНОЙ ТРАБЛШУТИНГ             -->
+        <!-- =================================================================== -->
+        <section id="sec-troubleshoot" class="app-section">
+            <!-- Панель переключения подрежимов диагностики -->
+            <div class="trouble-subnav-bar">
+                <div class="subtabs-group">
+                    <button class="trouble-subtab active" data-subtab="incidents">
+                        🚨 Режим «Авария» (5 сценариев)
+                    </button>
+                    <button class="trouble-subtab" data-subtab="output">
+                        📋 Чтение вывода консоли (6 заданий)
+                    </button>
+                    <button class="trouble-subtab" data-subtab="packet">
+                        🌐 Сквозной путь пакета «ya.ru» (7 хопов)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Подраздел 2.1: Режим «Авария» -->
+            <div id="pane-incidents" class="trouble-subpane active">
+                <div class="incident-toolbar mb-3">
+                    <label for="incident-select" class="text-sm text-muted">Выберите аварию:</label>
+                    <select id="incident-select" class="select-custom flex-grow">
+                        <option value="0">Авария #1: Пропал доступ в интернет у клиентов (MASQUERADE)</option>
+                        <option value="1">Авария #2: Маршруты OSPF не передаются между HQ и филиалом</option>
+                        <option value="2">Авария #3: Туннель gre1 не поднимается (DOWN / MTU)</option>
+                        <option value="3">Авария #4: Клиент HQ-CLI не получает IP-адрес по DHCP</option>
+                        <option value="4">Авария #5: Вход по SSH на HQ-SRV отвергается (порт 2026 / пароль)</option>
+                    </select>
+                </div>
+
+                <!-- Карточка симптома аварии -->
+                <div id="incident-symptom-card" class="mb-3"></div>
+
+                <!-- Линия шагов расследования -->
+                <div class="task-nav-container mb-3">
+                    <span class="task-nav-label">Шаги цепочки:</span>
+                    <div id="incident-steps-bar" class="incident-steps-flex"></div>
+                </div>
+
+                <!-- Подсказки к текущему шагу -->
+                <div class="d-flex justify-between align-center mb-2 flex-wrap gap-2">
+                    <span class="text-xs text-muted">Диагностическая цепочка: <code>ip a</code> ➔ <code>ping</code> ➔ <code>sysctl / systemctl</code> ➔ <code>cat config</code> ➔ <code>fix</code></span>
+                    <div class="d-flex gap-2">
+                        <button id="incident-btn-hint" class="btn btn-sm btn-outline text-yellow">💡 Подсказка шага</button>
+                        <button id="incident-btn-answer" class="btn btn-sm btn-outline text-green">👁 Команда шага</button>
+                    </div>
+                </div>
+
+                <div id="incident-hint-box" class="hint-container hidden mb-2"></div>
+
+                <!-- Терминал расследования аварии -->
+                <div class="terminal-window" id="incident-term-window">
+                    <div class="terminal-titlebar">
+                        <div class="win-dots">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                        </div>
+                        <div class="win-title">
+                            Диагностическая консоль устранения аварии (Rescue Console)
+                        </div>
+                        <div class="win-status">
+                            <span class="status-dot"></span> Emergency Mode
+                        </div>
+                    </div>
+
+                    <div id="incident-term-output" class="terminal-body-content"></div>
+
+                    <div class="terminal-input-row">
+                        <span id="incident-term-prompt" class="prompt">root@hq-rtr:~# </span>
+                        <input type="text" id="incident-term-input" class="term-input" 
+                               autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
+                               placeholder="Введите команду диагностики или устранения...">
+                        <button id="incident-btn-run" class="btn btn-sm btn-success btn-mobile-run">↵</button>
+                    </div>
+                </div>
+
+                <!-- Мобильная полоса ввода спецсимволов и Tab (без готовых ответов) -->
+                <div class="mobile-keyboard-bar">
+                    <span class="mobile-bar-label">Клавиши:</span>
+                    <button class="key-chip" data-key="/">/</button>
+                    <button class="key-chip" data-key="-">-</button>
+                    <button class="key-chip" data-key="_">_</button>
+                    <button class="key-chip" data-key=".">.</button>
+                    <button class="key-chip" data-key=":">:</button>
+                    <button class="key-chip" data-key="~">~</button>
+                    <button class="key-chip" data-key="&quot;">"</button>
+                    <button class="key-chip" data-key="'">'</button>
+                    <button class="key-chip" data-key=">">&gt;</button>
+                    <button class="key-chip" data-key="|">|</button>
+                    <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
+                    <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
+                </div>
+            </div>
+
+            <!-- Подраздел 2.2: Чтение вывода консоли -->
+            <div id="pane-output" class="trouble-subpane">
+                <div class="task-nav-container mb-3">
+                    <span class="task-nav-label">Вопросы на чтение вывода:</span>
+                    <div id="output-nav-pills" class="task-nav-pills"></div>
+                </div>
+
+                <div class="output-reading-card">
+                    <div class="output-header-bar mb-3">
+                        <span class="badge badge-warning">Интерпретация консоли</span>
+                        <h3 id="output-snippet-title" class="text-cyan">Заголовок вывода</h3>
+                    </div>
+
+                    <div class="terminal-window mb-3">
+                        <div class="terminal-titlebar">
+                            <div class="win-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+                            <div class="win-title">Реальный вывод терминала Linux</div>
+                        </div>
+                        <pre id="output-snippet-code" class="console-snippet-content"></pre>
+                    </div>
+
+                    <div class="output-question-box mb-3">
+                        <p id="output-question-text" class="output-q-text">Вопрос...</p>
+                    </div>
+
+                    <div id="output-options-box" class="output-options-grid mb-3"></div>
+                    <div id="output-explanation-box" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Подраздел 2.3: Сквозной путь пакета «ya.ru» -->
+            <div id="pane-packet" class="trouble-subpane">
+                <div class="packet-intro-card mb-3">
+                    <div class="d-flex align-center gap-2">
+                        <span class="text-xl">🌐</span>
+                        <div>
+                            <h3 class="text-cyan">Сквозной сценарий: «HQ-CLI не открывает ya.ru»</h3>
+                            <p class="text-sm text-light">Этот сценарий связывает воедино все темы 3–8: VLAN ➔ Маршрутизация ➔ Форвардинг ➔ NAT ➔ Провайдер ISP ➔ DNS-резолвер ➔ Внешний интернет.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7 Хопов - горизонтальная интерактивная линия -->
+                <div class="packet-hops-container mb-4">
+                    <div id="packet-hops-nav" class="packet-hops-row"></div>
+                </div>
+
+                <!-- Детальная карточка текущего хопа -->
+                <div id="packet-hop-card" class="hop-card"></div>
+            </div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- РАЗДЕЛ 3: РЕЖИМ «ЭКЗАМЕН» (ТАЙМЕР 15 МИН, 5 ЗАДАЧ + 3 ВОПРОСА)    -->
+        <!-- =================================================================== -->
+        <section id="sec-exam" class="app-section">
+            <!-- Стартовый баннер экзамена -->
+            <div id="exam-intro-box" class="exam-intro-card">
+                <div class="exam-intro-icon">⏱️</div>
+                <h2 class="text-yellow mb-2">Режим «Экзамен»: Проверка готовности к 14 ноября</h2>
+                <p class="text-light mb-4 max-w-700">
+                    Настоящая симуляция сдачи лабораторной работы. Вам случайным образом выпадут <b>5 практических задач</b> по настройке стенда и <b>3 вопроса экзаменатора</b>. 
+                    Подсказки и ответы <b>отключены</b>. В конце вы получите оценку по 5-балльной шкале и полный разбор допущенных ошибок.
+                </p>
+
+                <div class="exam-rules-grid mb-4">
+                    <div class="rule-item">
+                        <span class="rule-icon">⏳</span>
+                        <b>15 минут</b>
+                        <span class="text-xs text-muted">Таймер обратного отсчета</span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-icon">🔒</span>
+                        <b>Без подсказок</b>
+                        <span class="text-xs text-muted">Рассчитывайте только на себя</span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-icon">📊</span>
+                        <b>Табель оценок</b>
+                        <span class="text-xs text-muted">Детальный разбор всех билетов</span>
+                    </div>
+                </div>
+
+                <button id="exam-btn-start" class="btn btn-lg btn-success">
+                    ▶ Начать экзамен (15:00)
+                </button>
+            </div>
+
+            <!-- Активное окно сдачи экзамена -->
+            <div id="exam-active-container" class="hidden">
+                <div class="exam-top-bar mb-3">
+                    <div class="d-flex align-center gap-2">
+                        <span id="exam-q-badge" class="badge badge-topic">Билет #1</span>
+                        <h3 id="exam-q-title" class="text-cyan">Билет №1 из 8</h3>
+                    </div>
+
+                    <div class="d-flex align-center gap-3">
+                        <div class="exam-timer-box">
+                            <span class="text-xs text-muted">Осталось:</span>
+                            <span id="exam-timer-display" class="timer-digits">15:00</span>
+                        </div>
+                        <button id="exam-btn-finish-early" class="btn btn-xs btn-outline text-danger" title="Сдать работу досрочно">
+                            Завершить досрочно ⏹
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Навигация по 8 билетам -->
+                <div class="task-nav-container mb-3">
+                    <span class="task-nav-label">Билеты:</span>
+                    <div id="exam-nav-pills" class="task-nav-pills"></div>
+                </div>
+
+                <!-- Описание билета -->
+                <div class="exam-question-card mb-3">
+                    <div id="exam-q-desc" class="text-light">Загрузка задания...</div>
+                </div>
+
+                <!-- Экзаменационный терминал -->
+                <div class="terminal-window mb-3">
+                    <div class="terminal-titlebar">
+                        <div class="win-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+                        <div class="win-title">Экзаменационная сессия noVNC — Строгий режим</div>
+                        <div class="win-status"><span class="status-dot"></span> EXAM IN PROGRESS</div>
+                    </div>
+
+                    <div id="exam-term-output" class="terminal-body-content"></div>
+
+                    <div class="terminal-input-row">
+                        <span id="exam-term-prompt" class="prompt">root@node:~# </span>
+                        <input type="text" id="exam-term-input" class="term-input" 
+                               autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
+                               placeholder="Введите команду ответа...">
+                        <button id="exam-btn-submit" class="btn btn-sm btn-success">Сдать ответ ↵</button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-between align-center">
+                    <span class="text-xs text-muted">Нажимайте «Сдать ответ» или Enter после ввода каждой команды.</span>
+                    <button id="exam-btn-next" class="btn btn-sm btn-outline text-cyan">
+                        Следующий билет →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Блок результатов и табеля оценок -->
+            <div id="exam-results-box" class="hidden"></div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- РАЗДЕЛ 4: СДАЧА У ПРЕПОДАВАТЕЛЯ (РЕАЛИСТИЧНЫЙ ЭКЗАМЕНАТОР)          -->
         <!-- =================================================================== -->
         <section id="sec-teacher" class="app-section">
             <!-- Карточка диалога с преподавателем -->
@@ -236,27 +621,107 @@
                 </div>
             </div>
 
-            <!-- Мобильная полоса быстрых клавиш для сдачи -->
+            <!-- Мобильная полоса ввода спецсимволов и Tab (без готовых ответов) -->
             <div class="mobile-keyboard-bar">
-                <span class="mobile-bar-label">Спецсимволы:</span>
+                <span class="mobile-bar-label">Клавиши:</span>
                 <button class="key-chip" data-key="/">/</button>
                 <button class="key-chip" data-key="-">-</button>
                 <button class="key-chip" data-key="_">_</button>
+                <button class="key-chip" data-key=".">.</button>
+                <button class="key-chip" data-key=":">:</button>
+                <button class="key-chip" data-key="~">~</button>
+                <button class="key-chip" data-key="&quot;">"</button>
+                <button class="key-chip" data-key="'">'</button>
                 <button class="key-chip" data-key=">">&gt;</button>
                 <button class="key-chip" data-key="|">|</button>
-                <button class="key-chip" data-key=";">;</button>
-                <button class="key-chip" data-key="'">'</button>
-                <button class="key-chip text-cyan" data-key="timedatectl status">timedatectl</button>
-                <button class="key-chip text-yellow" data-key="ip -br -c a">ip a</button>
-                <button class="key-chip text-green" data-key="vtysh">vtysh</button>
-                <button class="key-chip btn-mobile-paste-chip" data-action="paste">📋 Вставить ответ</button>
+                <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
                 <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
             </div>
         </section>
 
 
         <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 3: КАРТА СЕТИ, АДРЕСАЦИЯ И БЛИЦ-ТЕСТ                         -->
+        <!-- РАЗДЕЛ 5: ТЕОРИЯ, БИЛЕТЫ И ОТВЕТ СВОИМИ СЛОВАМИ                    -->
+        <!-- =================================================================== -->
+        <section id="sec-defense" class="app-section">
+            <!-- Переключатель режима: Карточки vs Ответ своими словами -->
+            <div class="theory-mode-selector mb-4">
+                <div class="subtabs-group">
+                    <button id="qa-mode-cards" class="trouble-subtab active">
+                        📚 Карточки теории и билеты (14 вопросов)
+                    </button>
+                    <button id="qa-mode-freetext" class="trouble-subtab">
+                        ✍️ Тренажёр «Ответ своими словами» (с проверкой)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Подраздел 5.1: Обычные карточки с вопросами -->
+            <div id="qa-pane-cards">
+                <div class="qa-toolbar">
+                    <div class="d-flex gap-2 align-center flex-wrap">
+                        <label for="qa-topic-filter" class="text-sm text-muted">Тема:</label>
+                        <select id="qa-topic-filter" class="select-custom">
+                            <option value="all">Все теоретические вопросы</option>
+                            <option value="2">Практика 2: FQDN и часовые пояса</option>
+                            <option value="3">Практика 3: Подсистема /etc/net в Альт</option>
+                            <option value="4">Практика 4: VLAN 802.1Q и изоляция</option>
+                            <option value="5">Практика 5: NAT, MASQUERADE и forwarding</option>
+                            <option value="6">Практика 6: GRE, MTU и протокол OSPF</option>
+                            <option value="7">Практика 7: DHCP и опции 3/6</option>
+                            <option value="8">Практика 8: DNS, PTR-записи и SSH</option>
+                        </select>
+                        <input type="text" id="qa-search-input" class="input-custom" placeholder="Поиск (напр. MTU, OSPF, NAT)...">
+                    </div>
+
+                    <div class="d-flex gap-2 align-center">
+                        <div class="stat-item">
+                            <span class="text-muted">Выучено:</span>
+                            <b id="stat-qa-learned" class="text-green">0 / 14</b>
+                        </div>
+                        <button id="btn-random-qa" class="btn btn-outline">🎲 Случайный вопрос</button>
+                    </div>
+                </div>
+
+                <div id="qa-cards-container"></div>
+            </div>
+
+            <!-- Подраздел 5.2: Ответ своими словами (с проверкой) -->
+            <div id="qa-pane-freetext" class="hidden">
+                <div class="task-nav-container mb-3">
+                    <span class="task-nav-label">Вопросы для устного ответа:</span>
+                    <div id="ft-nav-pills" class="task-nav-pills"></div>
+                </div>
+
+                <div class="ft-card">
+                    <h3 id="ft-question-title" class="text-cyan mb-2">Вопрос...</h3>
+                    
+                    <div class="ft-criteria-box mb-3">
+                        <span class="text-xs text-muted font-bold d-block mb-1">Что обязательно должен услышать преподаватель в вашем ответе:</span>
+                        <ul id="ft-criteria-list" class="ft-criteria-ul"></ul>
+                    </div>
+
+                    <div class="ft-input-box mb-3">
+                        <label for="ft-textarea" class="text-sm text-yellow d-block mb-1">Ваш ответ своими словами (1–3 предложения):</label>
+                        <textarea id="ft-textarea" class="ft-textarea-custom" rows="4" 
+                                  placeholder="Например: NAT — это механизм трансляции адресов, который подменяет серые локальные IP на публичный адрес маршрутизатора для выхода в интернет..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-between align-center mb-3">
+                        <span class="text-xs text-muted">Тренажёр проверяет ключевые понятия и фразы, на которые ориентируется преподаватель.</span>
+                        <button id="ft-btn-check" class="btn btn-success">
+                            🎯 Проверить ответ
+                        </button>
+                    </div>
+
+                    <div id="ft-result-box" class="hidden"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- РАЗДЕЛ 6: КАРТА СЕТИ, АДРЕСАЦИЯ И БЛИЦ-ТЕСТ                         -->
         <!-- =================================================================== -->
         <section id="sec-topology" class="app-section">
             <div class="topo-layout">
@@ -327,7 +792,7 @@
                             </ul>
                         </div>
 
-                        <!-- BR-SRV -->
+                        <!-- BR-SRV (Исправлено под стенд: enp7s1) -->
                         <div class="topo-node-card br-srv-card topo-node" data-node="br-srv">
                             <div class="node-header">
                                 <span class="node-name">🖥️ BR-SRV</span>
@@ -335,7 +800,7 @@
                             </div>
                             <p class="text-sm text-muted mb-2">Сервер филиала</p>
                             <ul class="node-ip-list">
-                                <li>• enp0s3: <code>192.168.3.2/28</code></li>
+                                <li>• enp7s1: <code>192.168.3.2/28</code> <span class="text-xs text-muted">(или enp0s3)</span></li>
                                 <li>• Шлюз: <code>192.168.3.1</code></li>
                                 <li>• DNS: <code>192.168.1.2</code></li>
                             </ul>
@@ -344,7 +809,7 @@
                         <!-- Пустая ячейка -->
                         <div></div>
 
-                        <!-- HQ-CLI -->
+                        <!-- HQ-CLI (С пояснением про .12 vs .2) -->
                         <div class="topo-node-card cli-card topo-node" data-node="hq-cli">
                             <div class="node-header">
                                 <span class="node-name">💻 HQ-CLI</span>
@@ -355,6 +820,7 @@
                                 <li>• VLAN 200: <code>192.168.2.12/28</code></li>
                                 <li>• Шлюз: <code>192.168.2.1</code></li>
                                 <li>• DNS: <code>192.168.1.2</code></li>
+                                <li class="text-xs text-yellow mt-1">📌 В DNS записан как .2, по DHCP получает .12 из пула (.2-.14)</li>
                             </ul>
                         </div>
                     </div>
@@ -406,56 +872,296 @@
 
 
         <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 4: ТЕОРИЯ И ВОПРОСЫ ПРЕПОДАВАТЕЛЯ ПРИ ЗАЩИТЕ РАБОТ            -->
+        <!-- РАЗДЕЛ 7: ШПАРГАЛКА, ЧЕК-ЛИСТ И ОБЪЯСНЕНИЯ НОРМАЛЬНЫМ ЯЗЫКОМ        -->
         <!-- =================================================================== -->
-        <section id="sec-defense" class="app-section">
-            <div class="qa-toolbar">
-                <div class="d-flex gap-2 align-center flex-wrap">
-                    <label for="qa-topic-filter" class="text-sm text-muted">Тема:</label>
-                    <select id="qa-topic-filter" class="select-custom">
-                        <option value="all">Все теоретические вопросы</option>
-                        <option value="2">Практика 2: FQDN и часовые пояса</option>
-                        <option value="3">Практика 3: Подсистема /etc/net в Альт</option>
-                        <option value="4">Практика 4: VLAN 802.1Q и изоляция</option>
-                        <option value="5">Практика 5: NAT, MASQUERADE и forwarding</option>
-                        <option value="6">Практика 6: GRE, MTU и протокол OSPF</option>
-                        <option value="7">Практика 7: DHCP и опции 3/6</option>
-                        <option value="8">Практика 8: DNS, PTR-записи и SSH</option>
-                    </select>
-                    <input type="text" id="qa-search-input" class="input-custom" placeholder="Поиск по слову (напр. MTU, OSPF, NAT)...">
-                </div>
-
-                <div class="d-flex gap-2 align-center">
-                    <div class="stat-item">
-                        <span class="text-muted">Выучено:</span>
-                        <b id="stat-qa-learned" class="text-green">0 / 0</b>
-                    </div>
-                    <button id="btn-random-qa" class="btn btn-outline">🎲 Случайный вопрос</button>
+        <section id="sec-reference" class="app-section">
+            <!-- Навигационная панель подразделов Шпаргалки -->
+            <div class="ref-subnav-bar mb-3">
+                <div class="subtabs-group" id="ref-subtabs-group">
+                    <button class="trouble-subtab ref-subtab active" data-reftab="checklist">
+                        ⚡ 2-минутный экспресс-чеклист
+                    </button>
+                    <button class="trouble-subtab ref-subtab" data-reftab="plain">
+                        📖 Объяснения «Что, Зачем и Почему» (8 тем)
+                    </button>
+                    <button class="trouble-subtab ref-subtab" data-reftab="snippets">
+                        📋 Готовые конфигурации для копирования
+                    </button>
+                    <button class="trouble-subtab ref-subtab" data-reftab="tables">
+                        🌐 Таблицы DNS, подсетей и ВМ Proxmox
+                    </button>
+                    <button class="trouble-subtab ref-subtab" data-reftab="tabsandbox">
+                        ⌨️ Тренажёр клавиши Tab
+                    </button>
                 </div>
             </div>
 
-            <!-- Контейнер карточек с вопросами -->
-            <div id="qa-cards-container"></div>
-        </section>
+            <!-- ПОДРАЗДЕЛ 1: ЭКСПРЕСС-ЧЕКЛИСТ -->
+            <div id="ref-pane-checklist" class="ref-subpane active">
+                <div class="checklist-card mb-3">
+                    <div class="d-flex justify-between align-center flex-wrap gap-2 mb-2">
+                        <div class="d-flex align-center gap-2">
+                            <span class="text-xl">⚡</span>
+                            <h2 class="text-yellow" style="font-size:1.2rem;">2-минутный экспресс-чеклист перед сдачей преподавателю</h2>
+                        </div>
+                        <span id="checklist-counter-badge" class="badge badge-topic">0 / 5 проверок выполнено</span>
+                    </div>
+                    <p class="text-light text-sm mb-3">
+                        Запустите эти 5 команд по очереди перед тем, как подозвать преподавателя. Если все 5 тестов дают [OK] — ваш стенд на 100% работоспособен!
+                    </p>
 
+                    <div class="checklist-items-grid">
+                        <!-- Шаг 1 -->
+                        <div class="checklist-item" id="cl-item-1">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <input type="checkbox" id="chk-cl-1" class="checklist-checkbox">
+                                <label for="chk-cl-1" class="checklist-label"><b>1. Доступность шлюза провайдера ISP (Линк WAN)</b></label>
+                                <span class="badge ml-auto" style="background:#3b82f622; color:#3b82f6">HQ-RTR / BR-RTR</span>
+                            </div>
+                            <div class="checklist-command-row">
+                                <code>ping -c 2 172.16.1.1</code>
+                                <button class="btn btn-xs btn-outline copy-btn" data-copy="ping -c 2 172.16.1.1">📋 Копировать</button>
+                            </div>
+                            <div class="text-xs text-muted mt-1">Ожидаемый результат: 0% packet loss. Доказывает, что внешний кабель и IP-адресация работают.</div>
+                        </div>
 
-        <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 5: ШПАРГАЛКА И ГОТОВЫЕ КОНФИГИ                               -->
-        <!-- =================================================================== -->
-        <section id="sec-reference" class="app-section">
-            <div class="topo-layout">
-                <div>
-                    <h2 class="mb-3 text-cyan">📋 Готовые конфигурации для копирования</h2>
-                    <p class="text-muted text-sm mb-4">Эталонные конфигурации файлов из документа <code>Адреса_и_настройки_стенда.docx</code> с возможностью копирования в один клик.</p>
-                    
-                    <div id="snippets-container" class="snippets-grid mb-4"></div>
+                        <!-- Шаг 2 -->
+                        <div class="checklist-item" id="cl-item-2">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <input type="checkbox" id="chk-cl-2" class="checklist-checkbox">
+                                <label for="chk-cl-2" class="checklist-label"><b>2. Выход в глобальный интернет через NAT</b></label>
+                                <span class="badge ml-auto" style="background:#10b98122; color:#10b981">HQ-RTR / BR-RTR</span>
+                            </div>
+                            <div class="checklist-command-row">
+                                <code>ping -c 2 ya.ru</code>
+                                <button class="btn btn-xs btn-outline copy-btn" data-copy="ping -c 2 ya.ru">📋 Копировать</button>
+                            </div>
+                            <div class="text-xs text-muted mt-1">Ожидаемый результат: пинг идёт. Доказывает работу <code>sysctl forwarding</code> и правила <code>MASQUERADE</code> на ISP.</div>
+                        </div>
+
+                        <!-- Шаг 3 -->
+                        <div class="checklist-item" id="cl-item-3">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <input type="checkbox" id="chk-cl-3" class="checklist-checkbox">
+                                <label for="chk-cl-3" class="checklist-label"><b>3. Соседство OSPF через GRE-туннель</b></label>
+                                <span class="badge ml-auto" style="background:#8b5cf622; color:#8b5cf6">HQ-RTR</span>
+                            </div>
+                            <div class="checklist-command-row">
+                                <code>vtysh -c "show ip ospf neighbor"</code>
+                                <button class="btn btn-xs btn-outline copy-btn" data-copy="vtysh -c 'show ip ospf neighbor'">📋 Копировать</button>
+                            </div>
+                            <div class="text-xs text-muted mt-1">Ожидаемый результат: сосед <code>10.0.0.2</code> в статусе <b>Full</b>. Доказывает, что туннель gre1 поднят и MD5-ключ совпал.</div>
+                        </div>
+
+                        <!-- Шаг 4 -->
+                        <div class="checklist-item" id="cl-item-4">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <input type="checkbox" id="chk-cl-4" class="checklist-checkbox">
+                                <label for="chk-cl-4" class="checklist-label"><b>4. Сквозная связь: клиент HQ видит сервер филиала</b></label>
+                                <span class="badge ml-auto" style="background:#06b6d422; color:#06b6d4">HQ-CLI</span>
+                            </div>
+                            <div class="checklist-command-row">
+                                <code>ping -c 2 192.168.3.2</code>
+                                <button class="btn btn-xs btn-outline copy-btn" data-copy="ping -c 2 192.168.3.2">📋 Копировать</button>
+                            </div>
+                            <div class="text-xs text-muted mt-1">Ожидаемый результат: пакеты доходят до BR-SRV. Это любимый контрольный вопрос преподавателя!</div>
+                        </div>
+
+                        <!-- Шаг 5 -->
+                        <div class="checklist-item" id="cl-item-5">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <input type="checkbox" id="chk-cl-5" class="checklist-checkbox">
+                                <label for="chk-cl-5" class="checklist-label"><b>5. DNS-резолвер и SSH на нестандартном порту 2026</b></label>
+                                <span class="badge ml-auto" style="background:#ec489922; color:#ec4899">HQ-CLI</span>
+                            </div>
+                            <div class="checklist-command-row">
+                                <code>dig @192.168.1.2 hq-srv.au-team.irpo +short && ssh -p 2026 sshuser@192.168.1.2</code>
+                                <button class="btn btn-xs btn-outline copy-btn" data-copy="dig @192.168.1.2 hq-srv.au-team.irpo +short">📋 Копировать dig</button>
+                            </div>
+                            <div class="text-xs text-muted mt-1">Ожидаемый результат: dig выдаёт 192.168.1.2, а SSH запрашивает пароль sshuser. Стенд готов!</div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div>
+            <!-- ПОДРАЗДЕЛ 2: ОБЪЯСНЕНИЯ ЧТО, ЗАЧЕМ И ПОЧЕМУ -->
+            <div id="ref-pane-plain" class="ref-subpane hidden">
+                <div class="plain-cheats-section mb-3">
+                    <div class="d-flex justify-between align-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h2 class="text-cyan mb-1">📖 Шпаргалки нормальным языком: Что, Зачем и Почему</h2>
+                            <p class="text-muted text-sm">Краткие и понятные объяснения сути технологий без заумных академических формулировок — чтобы уверенно отвечать преподавателю.</p>
+                        </div>
+                        <input type="text" id="plain-cheat-search" class="input-custom" placeholder="🔍 Поиск по карточкам (напр. MTU, OSPF, NAT, маска)..." style="max-width:320px;">
+                    </div>
+
+                    <div class="plain-cheats-grid" id="plain-cheats-grid-container">
+                        <!-- 1. /etc/net -->
+                        <div class="plain-cheat-card" data-tags="etc net interfaces ip vlan host options altlinux">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">📁</span>
+                                    <b>Подсистема /etc/net — почему папки, а не один файл?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>В Debian или Ubuntu все интерфейсы часто пишут в один огромный файл <code>/etc/network/interfaces</code>. В Альт Линуксе сделали модульную систему: <b>один сетевой интерфейс = одна папка</b> в <code>/etc/net/ifaces/</code>.</p>
+                                <ul class="plain-list">
+                                    <li><code>ipv4address</code> — статический IP-адрес с маской в формате CIDR (напр. <code>172.16.1.2/28</code>).</li>
+                                    <li><code>ipv4route</code> — шлюз по умолчанию (строка <code>default via 172.16.1.1</code>).</li>
+                                    <li><code>options</code> — паспорт интерфейса: для VLAN указывается <code>TYPE=vlan</code> и <code>HOST=enp7s2</code>, для туннеля — <code>TUNTYPE=gre</code>.</li>
+                                </ul>
+                                <div class="plain-tip">💡 <b>Для ответа преподавателю:</b> «Такая модульность позволяет включать, выключать или копировать конфигурацию конкретного порта, не рискуя сломать настройки всей остальной сети машины».</div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Маски подсетей -->
+                        <div class="plain-cheat-card" data-tags="маска подсеть cidr 30 28 27 хосты адресация">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🔢</span>
+                                    <b>Маски подсетей (/30, /28, /27) простыми словами</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>Маска показывает, сколько бит отведено под адрес сети, а сколько — под адреса хостов (из 32 бит IPv4):</p>
+                                <ul class="plain-list">
+                                    <li><b>/30 (255.255.255.252)</b> — остаётся 2 бита под хосты ($2^2 = 4$ адреса). Минус адрес сети (.0) и broadcast (.3) = <b>ровно 2 рабочих адреса</b> (.1 и .2). <i>Идеально для туннеля точка-точка gre1: лишних адресов нет, никто чужой не подключится.</i></li>
+                                    <li><b>/28 (255.255.255.240)</b> — 4 бита под хосты ($2^4 = 16$ адресов). Минус 2 служебных = <b>14 хостов</b> (от .1 до .14). Используется для линков провайдера и клиентского VLAN 200.</li>
+                                    <li><b>/27 (255.255.255.224)</b> — 5 бит под хосты ($2^5 = 32$ адреса). Минус 2 служебных = <b>30 хостов</b>. Выделено под серверный сегмент VLAN 100.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 3. GRE и MTU 1476 -->
+                        <div class="plain-cheat-card" data-tags="gre mtu 1476 1500 туннель заголовок оверхед пакет фрагментация">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🚇</span>
+                                    <b>Зачем нужен GRE-туннель и почему MTU строго 1476?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>Между HQ и филиалом лежит публичная сеть провайдера ISP. Мы не можем пустить туда наши внутренние пакеты <code>192.168.x.x</code> — они частные (серые) и провайдер их отбросит.</p>
+                                <p>GRE берёт наш внутренний IP-пакет и упаковывает его как посылку в <b>новый внешний конверт</b> с адресами роутеров (172.16.1.2 ➔ 172.16.2.2).</p>
+                                <div class="plain-tip">
+                                    <b>Откуда взялось число 1476?</b><br>
+                                    Стандартный максимальный размер пакета в Ethernet (MTU) — <b>1500 байт</b>.<br>
+                                    Заголовок GRE весит 4 байта + внешний IP-заголовок 20 байт = <b>24 байта накладных расходов</b>.<br>
+                                    $1500 - 24 = \mathbf{1476}$ байт! Если оставить MTU 1500, пакет с конвертом превысит размер провода и начнёт фрагментироваться или молча теряться.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. OSPF и Area 0 -->
+                        <div class="plain-cheat-card" data-tags="ospf area 0 backbone маршрутизация динамическая frr vtysh">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🗺️</span>
+                                    <b>Зачем нужен OSPF и почему именно Area 0?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>OSPF — это протокол динамической маршрутизации. Без него нам пришлось бы на каждом роутере вручную писать десятки статических маршрутов.</p>
+                                <p>Роутеры через туннель gre1 обмениваются пакетами <i>OSPF Hello</i>. Когда они подтверждают соседство (статус <b>Full</b>), HQ-RTR говорит филиалу: <i>«У меня за спиной сети 192.168.1.0/27 и 192.168.2.0/28»</i>, а BR-RTR передаёт свою сеть <i>192.168.3.0/28</i>. Маршруты появляются в ядре сами!</p>
+                                <p><b>Area 0 (Backbone)</b> — это магистральная зона OSPF. По стандарту все остальные зоны обязаны подключаться к Area 0. На нашем стенде сеть небольшая, поэтому все интерфейсы объединены в Area 0.</p>
+                            </div>
+                        </div>
+
+                        <!-- 5. NAT и MASQUERADE -->
+                        <div class="plain-cheat-card" data-tags="nat masquerade iptables трансляция серые белые адреса интернет">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🔄</span>
+                                    <b>Зачем нужен NAT и действие MASQUERADE?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>В мире IPv4 глобальный дефицит адресов. У нашего провайдера ISP для всей организации выделен только один публичный адрес на внешнем порту enp7s1.</p>
+                                <p><b>MASQUERADE</b> (маскарадинг) — это правило: когда клиент <code>192.168.2.12</code> отправляет запрос на <code>ya.ru</code>, роутер стирает адрес клиента, подставляет свой внешний IP и запоминает порт в таблице трансляций. Когда ya.ru отвечает, роутер возвращает пакет клиенту.</p>
+                            </div>
+                        </div>
+
+                        <!-- 6. SSH порт 2026 -->
+                        <div class="plain-cheat-card" data-tags="ssh 2026 безопасность порт sshuser">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🛡️</span>
+                                    <b>Почему SSH слушает порт 2026, а не 22?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>Стандартный порт SSH — 22. Все вредоносные боты в интернете круглосуточно сканируют именно 22 порт и подбирают пароли методом brute-force.</p>
+                                <p>Смена порта на нестандартный (<code>Port 2026</code> в <code>/etc/openssh/sshd_config</code>) отсекает 99% автоматических сканеров. Это базовое требование регламента информационной безопасности.</p>
+                            </div>
+                        </div>
+
+                        <!-- 7. Тест на перезагрузку (Reboot Test) -->
+                        <div class="plain-cheat-card" data-tags="reboot перезагрузка crontab sysctl frr iptables сохранение" style="border-color: rgba(245, 158, 11, 0.4);">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">⚠️</span>
+                                    <b class="text-yellow">Тест на перезагрузку (Reboot Test): что слетит после reboot?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p class="text-danger font-bold">Частая ловушка на экзамене: преподаватель просит перезагрузить роутер, и половина настроек пропадает!</p>
+                                <ul class="plain-list">
+                                    <li><b>Форвардинг ядра:</b> команда <code>sysctl -w net.ipv4.ip_forward=1</code> работает только до перезагрузки! Обязательно добавьте строку в <code>/etc/net/sysctl.conf</code>.</li>
+                                    <li><b>Правила NAT iptables:</b> живут только в памяти ядра! Обязательно сохраните: <code>iptables-save > /root/iptables_rules</code> и добавьте автозагрузку в <code>crontab -e</code> (строка <code>@reboot /sbin/iptables-restore < /root/iptables_rules</code>).</li>
+                                    <li><b>Службы systemd:</b> если вы запустили службу через <code>systemctl start</code>, она не поднимется после ребута. Используйте флаг <code>enable --now</code> (напр. <code>systemctl enable --now dnsmasq</code>).</li>
+                                    <li><b>OSPF в FRR:</b> не забудьте выполнить в vtysh команду <code>do wr mem</code> (запись из памяти демона в <code>/etc/frr/frr.conf</code>).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 8. Выживание в консоли Proxmox noVNC -->
+                        <div class="plain-cheat-card" data-tags="помощь справка выживание помощь help grep vtysh journalctl" style="border-color: rgba(56, 189, 248, 0.4);">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🆘</span>
+                                    <b class="text-cyan">Выживание на экзамене: что делать, если забыл команду?</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p>Если на экзамене от волнения вылетело точное написание команды, используйте встроенную помощь Linux:</p>
+                                <ul class="plain-list">
+                                    <li><b>Встроенный знак вопроса в FRR:</b> в оболочке <code>vtysh</code> нажмите <kbd>?</kbd> — система покажет все доступные команды, а <code>show ip ?</code> покажет варианты параметров!</li>
+                                    <li><b>Поиск имени таймзоны:</b> <code>timedatectl list-timezones | grep -i barnaul</code> мгновенно покажет точное написание <code>Asia/Barnaul</code>.</li>
+                                    <li><b>Если сервис не стартует (failed):</b> наберите <code>systemctl status dnsmasq -l</code> или <code>journalctl -u dnsmasq -e</code> — в последних строчках лога красным будет написан <b>номер строки конфига с опечаткой</b>!</li>
+                                    <li><b>Завис пинг или команда:</b> комбинация <kbd>Ctrl</kbd>+<kbd>C</kbd> немедленно прерывает процесс и возвращает командную строку.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПОДРАЗДЕЛ 3: ГОТОВЫЕ КОНФИГУРАЦИИ ДЛЯ КОПИРОВАНИЯ -->
+            <div id="ref-pane-snippets" class="ref-subpane hidden">
+                <div class="snippets-intro-header mb-3">
+                    <h2 class="text-cyan mb-1">📋 Готовые конфигурации для копирования</h2>
+                    <p class="text-muted text-sm">Эталонные конфигурации файлов из документа <code>Адреса_и_настройки_стенда.docx</code> с возможностью копирования в один клик.</p>
+                </div>
+                <div id="snippets-container" class="snippets-grid-clean mb-4"></div>
+            </div>
+
+            <!-- ПОДРАЗДЕЛ 4: ТАБЛИЦЫ СЕТЕЙ И DNS -->
+            <div id="ref-pane-tables" class="ref-subpane hidden">
+                <div class="tables-subpane-grid">
                     <!-- Таблица DNS записей -->
                     <div class="snippet-card mb-4">
                         <div class="snippet-header">
                             <b>Таблица записей зоны au-team.irpo (HQ-SRV)</b>
+                            <span class="badge badge-topic text-xs">DNS / bind / dnsmasq</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table-custom">
@@ -472,9 +1178,10 @@
                     </div>
 
                     <!-- Таблица ВМ в Proxmox -->
-                    <div class="snippet-card">
+                    <div class="snippet-card mb-4">
                         <div class="snippet-header">
                             <b>Виртуальные машины стенда в Proxmox VE</b>
+                            <span class="badge badge-warning text-xs">Cluster au-team</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table-custom">
@@ -488,6 +1195,40 @@
                                 </thead>
                                 <tbody id="vm-ref-table-body"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПОДРАЗДЕЛ 5: ТРЕНАЖЁР КЛАВИШИ TAB -->
+            <div id="ref-pane-tabsandbox" class="ref-subpane hidden">
+                <div class="tab-sandbox-card mb-4">
+                    <div class="d-flex align-center gap-2 mb-2">
+                        <span class="text-xl">⌨️</span>
+                        <h3 class="text-cyan">Тренажёр автодополнения клавиши Tab (как в реальном Альт Линуксе)</h3>
+                    </div>
+                    <p class="text-sm text-light mb-3">
+                        В консоли Proxmox пути к файлам сетевой подсистемы длинные: <code>/etc/net/ifaces/enp7s2.100/ipv4address</code>. 
+                        <b>Никогда не набирайте их вручную!</b> Наберите первые 3–4 буквы и нажмите <kbd class="kbd-tab">Tab</kbd>. 
+                        Если вариантов несколько, нажмите <kbd class="kbd-tab">Tab</kbd> дважды — система выведет список всех доступных файлов. Попробуйте прямо здесь:
+                    </p>
+
+                    <div class="terminal-window mb-2">
+                        <div class="terminal-titlebar">
+                            <div class="win-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+                            <div class="win-title">Интерактивная песочница Tab — Попробуйте: /etc/n + Tab, systemctl res + Tab, time + Tab</div>
+                        </div>
+                        <div id="tab-sandbox-output" class="terminal-body-content" style="min-height:90px;">
+                            <div class="term-line sys-msg">
+                                💡 Наберите, например, <code class="text-cyan">cat /etc/net/ifaces/en</code> и нажмите <b>Tab</b>!
+                            </div>
+                        </div>
+                        <div class="terminal-input-row">
+                            <span class="prompt">root@alt-sandbox:~# </span>
+                            <input type="text" id="tab-sandbox-input" class="term-input" 
+                                   autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
+                                   placeholder="Наберите префикс и нажмите клавишу Tab...">
+                            <button class="key-chip" onclick="triggerMobileTab()">⇥ Нажать Tab</button>
                         </div>
                     </div>
                 </div>
@@ -509,7 +1250,12 @@
 
     <!-- Скрипты приложения -->
     <script src="js/data.js"></script>
+    <script src="js/tab_completion.js"></script>
+    <script src="js/stand_simulator.js"></script>
+    <script src="js/breakdown.js"></script>
     <script src="js/terminal.js"></script>
+    <script src="js/troubleshoot.js"></script>
+    <script src="js/exam_mode.js"></script>
     <script src="js/teacher.js"></script>
     <script src="js/topology.js"></script>
     <script src="js/qa.js"></script>

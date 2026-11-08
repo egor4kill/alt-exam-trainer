@@ -48,8 +48,22 @@ class TeacherExamTrainer {
     bindEvents() {
         if (!this.termInput) return;
 
+        // Подключение автодополнения Tab
+        if (window.altTabCompleter) {
+            window.altTabCompleter.attachToInput(
+                this.termInput,
+                this.termOutput,
+                () => this.termPrompt?.textContent || 'root@hq-rtr:~# '
+            );
+        }
+
         this.termInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                if (this.isWaitingNext) {
+                    e.preventDefault();
+                    if (this.advanceCallback) this.advanceCallback();
+                    return;
+                }
                 this.handleCommand(this.termInput.value);
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
@@ -98,6 +112,10 @@ class TeacherExamTrainer {
 
         // Кнопка запуска (для мобилок)
         document.getElementById('teacher-btn-run')?.addEventListener('click', () => {
+            if (this.isWaitingNext) {
+                if (this.advanceCallback) this.advanceCallback();
+                return;
+            }
             this.handleCommand(this.termInput.value);
         });
 
@@ -107,8 +125,11 @@ class TeacherExamTrainer {
                 e.preventDefault();
                 const key = chip.getAttribute('data-key');
                 const action = chip.getAttribute('data-action');
-                if (action === 'paste') {
-                    this.pasteCurrentAnswer();
+                if (action === 'tab') {
+                    if (window.altTabCompleter) {
+                        window.altTabCompleter.handleTab(this.termInput, this.termOutput, this.termPrompt?.textContent || 'root@hq-rtr:~# ');
+                        this.termInput.focus();
+                    }
                 } else if (action === 'clear') {
                     this.termInput.value = '';
                     this.termInput.focus();
@@ -155,6 +176,8 @@ class TeacherExamTrainer {
     }
 
     loadCurrentTask() {
+        this.isWaitingNext = false;
+        this.advanceCallback = null;
         if (this.tasks.length === 0) return;
 
         const task = this.tasks[this.currentTaskIndex];
@@ -247,7 +270,24 @@ class TeacherExamTrainer {
         this.updateStats();
         this.renderTaskNavigator();
 
-        setTimeout(() => {
+        this.isWaitingNext = true;
+
+        // Кнопка перехода к следующему вопросу (без принудительного таймера!)
+        const nextBtnDiv = document.createElement('div');
+        nextBtnDiv.className = 'term-line mt-3 d-flex gap-3 align-center flex-wrap';
+        nextBtnDiv.innerHTML = `
+            <button id="btn-teacher-next-step" class="btn btn-sm btn-success font-bold" style="padding: 0.55rem 1.3rem; font-size: 0.92rem; cursor: pointer;">
+                Следующий вопрос преподавателя → [Enter]
+            </button>
+            <span class="text-light text-xs">Изучите примечание преподавателя выше. Когда будете готовы перейти дальше — нажмите Enter или кнопку.</span>
+        `;
+        this.termOutput.appendChild(nextBtnDiv);
+        this.scrollToBottom();
+
+        const doAdvance = () => {
+            if (!this.isWaitingNext) return;
+            this.isWaitingNext = false;
+            this.advanceCallback = null;
             if (this.currentTaskIndex < this.tasks.length - 1) {
                 this.currentTaskIndex++;
                 this.saveState();
@@ -255,7 +295,10 @@ class TeacherExamTrainer {
             } else {
                 this.printOutput("🎓 ПРЕВОСХОДНО! Вы ответили на ВСЕ вопросы преподавателя!", "text-yellow font-bold");
             }
-        }, 1800);
+        };
+
+        this.advanceCallback = doAdvance;
+        document.getElementById('btn-teacher-next-step')?.addEventListener('click', doAdvance);
     }
 
     handleError(task, cmd) {

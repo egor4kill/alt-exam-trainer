@@ -2,10 +2,20 @@
 
 class TopologyManager {
     constructor() {
-        this.quizIndex = parseInt(localStorage.getItem('alt_topo_quiz_index') || '0', 10);
-        this.quizScore = parseInt(localStorage.getItem('alt_topo_quiz_score') || '0', 10);
-        if (this.quizIndex >= APP_DATA.topologyQuiz.length) {
+        try {
+            this.quizIndex = parseInt(localStorage.getItem('alt_topo_quiz_index') || '0', 10);
+            this.quizScore = parseInt(localStorage.getItem('alt_topo_quiz_score') || '0', 10);
+        } catch (e) {
             this.quizIndex = 0;
+            this.quizScore = 0;
+        }
+
+        const quizLen = (typeof APP_DATA !== 'undefined' && APP_DATA.topologyQuiz) ? APP_DATA.topologyQuiz.length : 0;
+        if (isNaN(this.quizIndex) || this.quizIndex < 0 || (quizLen > 0 && this.quizIndex >= quizLen)) {
+            this.quizIndex = 0;
+        }
+        if (isNaN(this.quizScore) || this.quizScore < 0) {
+            this.quizScore = 0;
         }
         this.selectedNode = null;
 
@@ -121,7 +131,10 @@ class TopologyManager {
     }
 
     renderSubnetTable() {
-        if (!this.subnetTableBody) return;
+        if (!this.subnetTableBody) {
+            this.subnetTableBody = document.getElementById('subnet-table-body');
+        }
+        if (!this.subnetTableBody || typeof APP_DATA === 'undefined' || !APP_DATA.subnets) return;
         this.subnetTableBody.innerHTML = APP_DATA.subnets.map(s => `
             <tr>
                 <td><b class="text-yellow">${s.net}</b></td>
@@ -133,22 +146,39 @@ class TopologyManager {
     }
 
     loadQuizQuestion() {
-        if (!this.quizQuestion) return;
+        if (!this.quizQuestion) {
+            this.quizQuestion = document.getElementById('quiz-question');
+            this.quizOptions = document.getElementById('quiz-options');
+            this.quizResult = document.getElementById('quiz-result');
+            this.quizNextBtn = document.getElementById('quiz-next-btn');
+            this.quizScoreDisplay = document.getElementById('quiz-score-display');
+        }
+        if (!this.quizQuestion || typeof APP_DATA === 'undefined' || !APP_DATA.topologyQuiz || APP_DATA.topologyQuiz.length === 0) return;
+
+        if (this.quizIndex >= APP_DATA.topologyQuiz.length || this.quizIndex < 0 || isNaN(this.quizIndex)) {
+            this.quizIndex = 0;
+        }
 
         const q = APP_DATA.topologyQuiz[this.quizIndex];
-        this.quizQuestion.textContent = `${this.quizIndex + 1}. ${q.q}`;
-        this.quizResult.classList.add('hidden');
-        this.quizNextBtn.classList.add('hidden');
-        this.quizScoreDisplay.textContent = `Счет: ${this.quizScore} / ${APP_DATA.topologyQuiz.length}`;
+        if (!q) return;
 
-        this.quizOptions.innerHTML = '';
-        q.options.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-quiz-opt';
-            btn.textContent = opt;
-            btn.addEventListener('click', () => this.checkQuizAnswer(idx, q));
-            this.quizOptions.appendChild(btn);
-        });
+        this.quizQuestion.textContent = `${this.quizIndex + 1}. ${q.q}`;
+        if (this.quizResult) this.quizResult.classList.add('hidden');
+        if (this.quizNextBtn) this.quizNextBtn.classList.add('hidden');
+        if (this.quizScoreDisplay) {
+            this.quizScoreDisplay.textContent = `Счет: ${this.quizScore} / ${APP_DATA.topologyQuiz.length}`;
+        }
+
+        if (this.quizOptions) {
+            this.quizOptions.innerHTML = '';
+            (q.options || []).forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-quiz-opt';
+                btn.textContent = opt;
+                btn.addEventListener('click', () => this.checkQuizAnswer(idx, q));
+                this.quizOptions.appendChild(btn);
+            });
+        }
     }
 
     checkQuizAnswer(chosenIdx, q) {

@@ -1,27 +1,41 @@
-// Главный контроллер приложения
+// js/app.js
+// Главный контроллер приложения и навигации между модулями
 
 document.addEventListener('DOMContentLoaded', () => {
     // Инициализация вкладок
     initTabs();
 
-    // Инициализация модулей
-    window.terminalTrainer = new TerminalTrainer();
-    window.teacherTrainer = new TeacherExamTrainer();
-    window.topologyManager = new TopologyManager();
-    window.examQAManager = new ExamQAManager();
+    // Инициализация модулей с защитой от ошибок
+    try { window.terminalTrainer = new TerminalTrainer(); } catch (e) { console.error('Error init TerminalTrainer:', e); }
+    try { window.standSimulator = new StandSimulator(); } catch (e) { console.error('Error init StandSimulator:', e); }
+    try { window.troubleshootManager = new TroubleshootManager(); } catch (e) { console.error('Error init TroubleshootManager:', e); }
+    try { window.examManager = new ExamManager(); } catch (e) { console.error('Error init ExamManager:', e); }
+    try { window.teacherTrainer = new TeacherExamTrainer(); } catch (e) { console.error('Error init TeacherExamTrainer:', e); }
+    try { window.topologyManager = new TopologyManager(); } catch (e) { console.error('Error init TopologyManager:', e); }
+    try { window.examQAManager = new ExamQAManager(); } catch (e) { console.error('Error init ExamQAManager:', e); }
 
     // Рендер шпаргалки конфигураций
-    renderReferenceTables();
-    renderCopyableSnippets();
+    try { renderReferenceTables(); } catch (e) { console.error('Error renderReferenceTables:', e); }
+    try { renderCopyableSnippets(); } catch (e) { console.error('Error renderCopyableSnippets:', e); }
+
+    // Чек-лист, подвкладки шпаргалки и поиск
+    try { initRefSubtabs(); } catch (e) { console.error('Error initRefSubtabs:', e); }
+    try { initPlainCheatsSearch(); } catch (e) { console.error('Error initPlainCheatsSearch:', e); }
+    try { initExpressChecklist(); } catch (e) { console.error('Error initExpressChecklist:', e); }
+    try { initTabPlayground(); } catch (e) { console.error('Error initTabPlayground:', e); }
 
     // Быстрое копирование в буфер
-    initCopyButtons();
+    try { initCopyButtons(); } catch (e) { console.error('Error initCopyButtons:', e); }
 });
 
 function initTabs() {
     const tabs = document.querySelectorAll('.nav-tab');
     const sections = document.querySelectorAll('.app-section');
+    const navTabs = document.getElementById('main-nav-tabs');
+    const btnLeft = document.getElementById('nav-scroll-btn-left');
+    const btnRight = document.getElementById('nav-scroll-btn-right');
 
+    // Переключение основных вкладок
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetSection = tab.getAttribute('data-target');
@@ -35,14 +49,70 @@ function initTabs() {
                 targetEl.classList.add('active');
             }
 
-            // Фокус в инпут при открытии консоли
+            // Плавная прокрутка активной вкладки в область видимости
+            tab.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+
+            // Фокус в соответствующий терминал при открытии вкладки
             if (targetSection === 'sec-terminal') {
                 document.getElementById('terminal-input')?.focus();
+            } else if (targetSection === 'sec-stand') {
+                document.getElementById('stand-term-input')?.focus();
             } else if (targetSection === 'sec-teacher') {
                 document.getElementById('teacher-term-input')?.focus();
+            } else if (targetSection === 'sec-troubleshoot') {
+                document.getElementById('incident-term-input')?.focus();
+            } else if (targetSection === 'sec-exam') {
+                if (window.examManager && window.examManager.isExamActive) {
+                    document.getElementById('exam-term-input')?.focus();
+                }
             }
         });
     });
+
+    // Горизонтальный скролл колёсиком мыши по шапке вкладок
+    if (navTabs) {
+        navTabs.addEventListener('wheel', (e) => {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                navTabs.scrollLeft += (e.deltaY > 0 ? 90 : -90);
+                updateNavScrollButtons();
+            }
+        }, { passive: false });
+    }
+
+    // Кнопки быстрой прокрутки влево/вправо (‹ и ›)
+    function updateNavScrollButtons() {
+        if (!navTabs) return;
+        const hasOverflow = navTabs.scrollWidth > navTabs.clientWidth + 5;
+        if (btnLeft) {
+            btnLeft.style.display = hasOverflow ? 'flex' : 'none';
+            btnLeft.style.opacity = navTabs.scrollLeft > 5 ? '1' : '0.35';
+        }
+        if (btnRight) {
+            btnRight.style.display = hasOverflow ? 'flex' : 'none';
+            btnRight.style.opacity = (navTabs.scrollLeft < navTabs.scrollWidth - navTabs.clientWidth - 5) ? '1' : '0.35';
+        }
+    }
+
+    if (btnLeft && navTabs) {
+        btnLeft.addEventListener('click', () => {
+            navTabs.scrollBy({ left: -220, behavior: 'smooth' });
+            setTimeout(updateNavScrollButtons, 320);
+        });
+    }
+
+    if (btnRight && navTabs) {
+        btnRight.addEventListener('click', () => {
+            navTabs.scrollBy({ left: 220, behavior: 'smooth' });
+            setTimeout(updateNavScrollButtons, 320);
+        });
+    }
+
+    if (navTabs) {
+        navTabs.addEventListener('scroll', updateNavScrollButtons, { passive: true });
+    }
+    window.addEventListener('resize', updateNavScrollButtons, { passive: true });
+    setTimeout(updateNavScrollButtons, 100);
 }
 
 function renderReferenceTables() {
@@ -58,7 +128,7 @@ function renderReferenceTables() {
         `).join('');
     }
 
-    // Таблица ВМ
+    // Таблица ВМ (с обновленным enp7s1 и заметкой про .12 vs .2)
     const vmTbody = document.getElementById('vm-ref-table-body');
     if (vmTbody) {
         vmTbody.innerHTML = APP_DATA.nodes.map(n => `
@@ -141,9 +211,203 @@ function initCopyButtons() {
 }
 
 function escapeForHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function escapeForAttr(str) {
-    return str.replace(/"/g, '&quot;');
+    return (str || '').replace(/"/g, '&quot;');
 }
+
+// =========================================================================
+// ЭКСПРЕСС-ЧЕКЛИСТ САМОПРОВЕРКИ (2 МИНУТЫ)
+// =========================================================================
+
+function initExpressChecklist() {
+    const checkboxes = document.querySelectorAll('.checklist-checkbox');
+    const badge = document.getElementById('checklist-counter-badge');
+    const state = JSON.parse(localStorage.getItem('alt_checklist_state') || '{}');
+
+    function updateCounter() {
+        let checkedCount = 0;
+        checkboxes.forEach((cb, idx) => {
+            const item = document.getElementById(`cl-item-${idx + 1}`);
+            if (cb.checked) {
+                checkedCount++;
+                item?.classList.add('is-done');
+            } else {
+                item?.classList.remove('is-done');
+            }
+        });
+
+        if (badge) {
+            badge.textContent = `${checkedCount} / ${checkboxes.length} проверок выполнено`;
+            if (checkedCount === checkboxes.length) {
+                badge.className = 'badge badge-success';
+                badge.textContent = '🎉 ВСЕ 5 ПРОВЕРОК ПРОЙДЕНЫ! СТЕНД ГОТОВ К СДАЧЕ';
+            } else {
+                badge.className = 'badge badge-topic';
+            }
+        }
+    }
+
+    checkboxes.forEach((cb, idx) => {
+        const key = `step_${idx + 1}`;
+        if (state[key]) {
+            cb.checked = true;
+        }
+
+        cb.addEventListener('change', () => {
+            state[key] = cb.checked;
+            localStorage.setItem('alt_checklist_state', JSON.stringify(state));
+            updateCounter();
+        });
+    });
+
+    updateCounter();
+}
+
+// =========================================================================
+// ИНТЕРАКТИВНАЯ ПЕСОЧНИЦА ТРЕНАЖЁРА КЛАВИШИ TAB
+// =========================================================================
+
+function initTabPlayground() {
+    const input = document.getElementById('tab-sandbox-input');
+    const output = document.getElementById('tab-sandbox-output');
+    if (!input || !output) return;
+
+    if (window.altTabCompleter) {
+        window.altTabCompleter.attachToInput(
+            input,
+            output,
+            () => 'root@alt-sandbox:~# '
+        );
+    }
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const val = input.value.trim();
+            if (!val) return;
+
+            const line = document.createElement('div');
+            line.className = 'term-line';
+            line.innerHTML = `<span class="prompt">root@alt-sandbox:~# </span><span class="user-cmd">${escapeForHtml(val)}</span>`;
+            output.appendChild(line);
+
+            const outLine = document.createElement('div');
+            outLine.className = 'term-line text-cyan text-xs';
+            outLine.innerHTML = `[Tab Emulator] Отлично! Продолжайте пробовать автодополнение длинных путей клавишей Tab.`;
+            output.appendChild(outLine);
+
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
+        }
+    });
+}
+
+function triggerMobileTab() {
+    const input = document.getElementById('tab-sandbox-input');
+    const output = document.getElementById('tab-sandbox-output');
+    if (input && window.altTabCompleter) {
+        window.altTabCompleter.handleTab(input, output, 'root@alt-sandbox:~# ');
+        input.focus();
+    }
+}
+
+// =========================================================================
+// РАСКРЫТИЕ КАРТОЧЕК ШПАРГАЛКИ «НОРМАЛЬНЫМ ЯЗЫКОМ»
+// =========================================================================
+
+function togglePlainCheat(headerEl) {
+    const card = headerEl.closest('.plain-cheat-card');
+    if (!card) return;
+    card.classList.toggle('is-expanded');
+}
+
+// =========================================================================
+// ПОДРАЗДЕЛЫ ШПАРГАЛКИ И ЖИВОЙ ПОИСК ПО КАРТОЧКАМ
+// =========================================================================
+
+function initRefSubtabs() {
+    const tabs = document.querySelectorAll('.ref-subtab');
+    const panes = document.querySelectorAll('.ref-subpane');
+    if (!tabs.length || !panes.length) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const reftab = tab.getAttribute('data-reftab');
+            if (!reftab) return;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            panes.forEach(p => {
+                p.classList.remove('active');
+                p.classList.add('hidden');
+            });
+
+            tab.classList.add('active');
+            const targetPane = document.getElementById(`ref-pane-${reftab}`);
+            if (targetPane) {
+                targetPane.classList.remove('hidden');
+                targetPane.classList.add('active');
+            }
+
+            if (reftab === 'tabsandbox') {
+                document.getElementById('tab-sandbox-input')?.focus();
+            }
+        });
+    });
+}
+
+function initPlainCheatsSearch() {
+    const searchInput = document.getElementById('plain-cheat-search');
+    const container = document.getElementById('plain-cheats-grid-container');
+    if (!searchInput || !container) return;
+
+    const cards = container.querySelectorAll('.plain-cheat-card');
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        let matchedCount = 0;
+
+        cards.forEach(card => {
+            if (!query) {
+                card.style.display = '';
+                matchedCount++;
+                return;
+            }
+            const tags = (card.getAttribute('data-tags') || '').toLowerCase();
+            const text = card.textContent.toLowerCase();
+            if (tags.includes(query) || text.includes(query)) {
+                card.style.display = '';
+                matchedCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Индикатор пустого результата
+        let emptyNotice = document.getElementById('plain-search-empty-notice');
+        if (matchedCount === 0) {
+            if (!emptyNotice) {
+                emptyNotice = document.createElement('div');
+                emptyNotice.id = 'plain-search-empty-notice';
+                emptyNotice.className = 'alert alert-info text-center';
+                emptyNotice.style.gridColumn = '1 / -1';
+                emptyNotice.innerHTML = `По запросу «<b>${escapeForHtml(query)}</b>» карточек не найдено. Попробуйте слова: <i>MTU, OSPF, NAT, маска, reboot, ssh</i>.`;
+                container.appendChild(emptyNotice);
+            } else {
+                emptyNotice.style.display = '';
+                emptyNotice.innerHTML = `По запросу «<b>${escapeForHtml(query)}</b>» карточек не найдено. Попробуйте слова: <i>MTU, OSPF, NAT, маска, reboot, ssh</i>.`;
+            }
+        } else if (emptyNotice) {
+            emptyNotice.style.display = 'none';
+        }
+    });
+}
+
+// Экспорт глобальных функций для onclick
+window.triggerMobileTab = triggerMobileTab;
+window.togglePlainCheat = togglePlainCheat;
+window.initRefSubtabs = initRefSubtabs;
+window.initPlainCheatsSearch = initPlainCheatsSearch;
+
+

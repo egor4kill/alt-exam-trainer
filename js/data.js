@@ -78,7 +78,7 @@ const APP_DATA = {
             vmid: 10604,
             name: "HQ-CLI",
             fqdn: "hq-cli.au-team.irpo",
-            role: "Клиентская машина главного офиса",
+            role: "Клиентская машина (DHCP). Реальный IP: 192.168.2.12/28 (выдан из пула .2–.14). В таблице DNS методички записан .2 как эталон.",
             color: "#06b6d4",
             interfaces: [
                 { name: "enp7s1.200 (enp0s3.200)", ip: "DHCP (192.168.2.2–2.14, факт .12)", gw: "192.168.2.1", desc: "VLAN 200 (BOOTPROTO=dhcp)" }
@@ -120,13 +120,13 @@ const APP_DATA = {
             role: "Сервер филиала (Branch)",
             color: "#ec4899",
             interfaces: [
-                { name: "enp7s1 (enp0s3)", ip: "192.168.3.2/28", gw: "192.168.3.1", desc: "Локальная сеть BR" }
+                { name: "enp7s1", ip: "192.168.3.2/28", gw: "192.168.3.1", desc: "Локальная сеть BR" }
             ],
             services: ["Тестовый хост связности сквозь OSPF/GRE"],
             configs: [
-                "/etc/net/ifaces/enp0s3/ipv4address",
-                "/etc/net/ifaces/enp0s3/ipv4route",
-                "/etc/net/ifaces/enp0s3/resolv.conf"
+                "/etc/net/ifaces/enp7s1/ipv4address",
+                "/etc/net/ifaces/enp7s1/ipv4route",
+                "/etc/net/ifaces/enp7s1/resolv.conf"
             ]
         }
     ],
@@ -302,7 +302,7 @@ const APP_DATA = {
                 "topicId": 2,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Установите часовой пояс Барнаула (Asia/Barnaul) через timedatectl",
+                "task": "Установите часовой пояс Барнаула (Asia/Barnaul) для системы",
                 "correctAnswers": [
                         "timedatectl set-timezone Asia/Barnaul"
                 ],
@@ -315,7 +315,7 @@ const APP_DATA = {
                 "topicId": 2,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Проверьте статус системного времени и таймзоны через timedatectl status",
+                "task": "Проверьте статус системного времени, таймзоны и синхронизации NTP",
                 "correctAnswers": [
                         "timedatectl status",
                         "timedatectl"
@@ -373,7 +373,7 @@ const APP_DATA = {
                 "topicId": 3,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Назначьте статический IP 172.16.1.1/28 интерфейсу enp7s2 через файл ipv4address",
+                "task": "Назначьте статический IP 172.16.1.1/28 интерфейсу enp7s2 в подсистеме /etc/net",
                 "correctAnswers": [
                         "echo '172.16.1.1/28' > /etc/net/ifaces/enp7s2/ipv4address",
                         "echo 172.16.1.1/28 > /etc/net/ifaces/enp7s2/ipv4address"
@@ -443,7 +443,7 @@ const APP_DATA = {
                 "topicId": 3,
                 "host": "hq-rtr",
                 "prompt": "root@hq-rtr:~# ",
-                "task": "Укажите шлюз по умолчанию 172.16.1.1 для интерфейса enp7s1 в файле ipv4route",
+                "task": "Укажите шлюз по умолчанию 172.16.1.1 для интерфейса enp7s1",
                 "correctAnswers": [
                         "echo 'default via 172.16.1.1' > /etc/net/ifaces/enp7s1/ipv4route",
                         "echo default via 172.16.1.1 > /etc/net/ifaces/enp7s1/ipv4route"
@@ -485,7 +485,7 @@ const APP_DATA = {
                 "topicId": 3,
                 "host": "br-rtr",
                 "prompt": "root@br-rtr:~# ",
-                "task": "Укажите шлюз по умолчанию 172.16.2.1 в файле ipv4route интерфейса enp7s1 на BR-RTR",
+                "task": "Укажите шлюз по умолчанию 172.16.2.1 для интерфейса enp7s1 на BR-RTR",
                 "correctAnswers": [
                         "echo 'default via 172.16.2.1' > /etc/net/ifaces/enp7s1/ipv4route",
                         "echo default via 172.16.2.1 > /etc/net/ifaces/enp7s1/ipv4route"
@@ -515,11 +515,11 @@ const APP_DATA = {
                 "prompt": "root@br-srv:~# ",
                 "task": "Назначьте статический IP 192.168.3.2/28 интерфейсу enp0s3 на сервере BR-SRV",
                 "correctAnswers": [
-                        "echo '192.168.3.2/28' > /etc/net/ifaces/enp0s3/ipv4address",
-                        "echo 192.168.3.2/28 > /etc/net/ifaces/enp0s3/ipv4address"
+                        "echo '192.168.3.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
+                        "echo 192.168.3.2/28 > /etc/net/ifaces/enp7s1/ipv4address"
                 ],
                 "hint1": "Сервер филиала получает второй адрес локальной подсети 192.168.3.0/28.",
-                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp0s3/ipv4address",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s1/ipv4address",
                 "explanation": "Назначает статический IP серверу филиала."
         },
         {
@@ -527,10 +527,10 @@ const APP_DATA = {
                 "topicId": 3,
                 "host": "br-srv",
                 "prompt": "root@br-srv:~# ",
-                "task": "Укажите шлюз по умолчанию 192.168.3.1 на сервере BR-SRV в файле ipv4route",
+                "task": "Укажите шлюз по умолчанию 192.168.3.1 на сервере BR-SRV",
                 "correctAnswers": [
-                        "echo 'default via 192.168.3.1' > /etc/net/ifaces/enp0s3/ipv4route",
-                        "echo default via 192.168.3.1 > /etc/net/ifaces/enp0s3/ipv4route"
+                        "echo 'default via 192.168.3.1' > /etc/net/ifaces/enp7s1/ipv4route",
+                        "echo default via 192.168.3.1 > /etc/net/ifaces/enp7s1/ipv4route"
                 ],
                 "hint1": "Шлюзом для BR-SRV является локальный порт маршрутизатора BR-RTR.",
                 "hint2": "Синтаксис: echo 'default via <IP>' > .../ipv4route",
@@ -706,7 +706,7 @@ const APP_DATA = {
                 "topicId": 5,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Проверьте статус параметра ядра net.ipv4.ip_forward через sysctl",
+                "task": "Проверьте, разрешена ли в ядре пересылка пакетов IPv4 (параметр net.ipv4.ip_forward)",
                 "correctAnswers": [
                         "sysctl net.ipv4.ip_forward",
                         "cat /proc/sys/net/ipv4/ip_forward"
@@ -720,7 +720,7 @@ const APP_DATA = {
                 "topicId": 5,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Включите форвардинг IPv4 в работающем ядре командой sysctl -w",
+                "task": "Включите форвардинг IPv4 в работающем ядре без перезагрузки системы",
                 "correctAnswers": [
                         "sysctl -w net.ipv4.ip_forward=1",
                         "sysctl -w net.ipv4.ip_forward = 1",
@@ -762,7 +762,7 @@ const APP_DATA = {
                 "topicId": 5,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Выведите правила таблицы NAT утилитой iptables -t nat -L",
+                "task": "Выведите текущие активные правила и цепочки в таблице NAT",
                 "correctAnswers": [
                         "iptables -t nat -L",
                         "iptables -t nat -vnL",
@@ -966,7 +966,7 @@ const APP_DATA = {
                 "topicId": 6,
                 "host": "hq-rtr",
                 "prompt": "root@hq-rtr:~# ",
-                "task": "Войдите в интерактивную консоль маршрутизатора FRR (vtysh)",
+                "task": "Войдите в командную оболочку демона маршрутизации FRRouting",
                 "correctAnswers": [
                         "vtysh"
                 ],
@@ -1058,7 +1058,7 @@ const APP_DATA = {
                 "topicId": 6,
                 "host": "hq-rtr",
                 "prompt": "root@hq-rtr:~# ",
-                "task": "Проверьте таблицу соседей OSPF из bash через vtysh -c",
+                "task": "Проверьте таблицу соседей OSPF однострочной командой из командной строки bash",
                 "correctAnswers": [
                         "vtysh -c \"show ip ospf neighbor\"",
                         "vtysh -c 'show ip ospf neighbor'"
@@ -1212,7 +1212,7 @@ const APP_DATA = {
                 "topicId": 7,
                 "host": "hq-cli",
                 "prompt": "root@hq-cli:~# ",
-                "task": "Проверьте полученный шлюз по умолчанию командой ip route",
+                "task": "Проверьте полученный шлюз по умолчанию на клиенте через таблицу маршрутизации",
                 "correctAnswers": [
                         "ip route",
                         "ip r"
@@ -1474,8 +1474,8 @@ const APP_DATA = {
                 "prompt": "root@br-srv:~# ",
                 "task": "На BR-SRV укажите корпоративный DNS 192.168.1.2 в resolv.conf интерфейса enp0s3",
                 "correctAnswers": [
-                        "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp0s3/resolv.conf",
-                        "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp0s3/resolv.conf"
+                        "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp7s1/resolv.conf",
+                        "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp7s1/resolv.conf"
                 ],
                 "hint1": "Сервер филиала переключается на корпоративный DNS.",
                 "hint2": "Синтаксис: echo 'nameserver <IP_HQ_SRV>' > .../resolv.conf",
@@ -1486,7 +1486,7 @@ const APP_DATA = {
                 "topicId": 8,
                 "host": "hq-cli",
                 "prompt": "user@hq-cli:~$ ",
-                "task": "На HQ-CLI проверьте полученный DNS-сервер в файле /etc/resolv.conf",
+                "task": "На HQ-CLI выведите текущие назначенные DNS-серверы хоста",
                 "correctAnswers": [
                         "cat /etc/resolv.conf",
                         "less /etc/resolv.conf"
@@ -2035,6 +2035,651 @@ const APP_DATA = {
                 "hint1": "Перезапуск сетевого демона network через systemctl.",
                 "hint2": "Шаблон: systemctl restart network",
                 "explanation": "Перезапускает подсистему /etc/net и применяет все профили интерфейсов."
+        }
+],
+
+    // Новые модули: Аварии, Чтение вывода, Путь пакета, Устный опрос
+    incidents: [
+        {
+                "id": "inc_1",
+                "title": "Авария #1: Пропал доступ в интернет у клиентов (ping ya.ru не идёт)",
+                "symptom": "Клиент HQ-CLI не может открыть ya.ru. Пинг с маршрутизатора HQ-RTR на ya.ru даёт 100% потерю пакетов.",
+                "host": "hq-rtr",
+                "steps": [
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 1: Проверьте статус внешнего интерфейса enp7s1 и наличие IP-адреса",
+                                "validCommands": [
+                                        "ip -br -c a",
+                                        "ip a",
+                                        "ip -br a",
+                                        "ip addr"
+                                ],
+                                "output": "enp7s1           UP             172.16.1.2/28\n[i] Внешний линк маршрутизатора поднят, IP 172.16.1.2/28 на месте.",
+                                "explanation": "Физика и IP-адрес в порядке. Проверяем связь со следующим узлом."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 2: Проверьте доступность шлюза провайдера ISP (172.16.1.1)",
+                                "validCommands": [
+                                        "ping -c 2 172.16.1.1",
+                                        "ping -c 3 172.16.1.1",
+                                        "ping 172.16.1.1"
+                                ],
+                                "output": "2 packets transmitted, 2 received, 0% packet loss, time 1002ms\nrtt min/avg/max/mdev = 0.384/0.412/0.440/0.028 ms\n[i] Провайдер ISP отвечает мгновенно.",
+                                "explanation": "Линк до ISP работает. Проблема локализована на самом роутере HQ-RTR."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 3: Проверьте, включена ли пересылка пакетов (forwarding) в ядре Linux",
+                                "validCommands": [
+                                        "sysctl net.ipv4.ip_forward",
+                                        "cat /proc/sys/net/ipv4/ip_forward"
+                                ],
+                                "output": "net.ipv4.ip_forward = 1\n[i] Ядро Linux разрешает маршрутизацию пакетов между интерфейсами.",
+                                "explanation": "Форвардинг включен. Теперь проверяем правила трансляции сетевых адресов (NAT)."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 4: Проверьте активные правила трансляции адресов NAT в iptables",
+                                "validCommands": [
+                                        "iptables -t nat -L",
+                                        "iptables -t nat -nvL",
+                                        "iptables -t nat -S",
+                                        "iptables -t nat -L -v -n",
+                                        "iptables -t nat -L POSTROUTING"
+                                ],
+                                "output": "Chain PREROUTING (policy ACCEPT)\nChain INPUT (policy ACCEPT)\nChain POSTROUTING (policy ACCEPT)\n[!] ВНИМАНИЕ: Цепочка POSTROUTING абсолютно пуста! Правило MASQUERADE отсутствует!",
+                                "explanation": "ПРИЧИНА НАЙДЕНА: Пакеты из локальной сети уходят к ISP со своими серыми адресами 192.168.0.0 и отбрасываются провайдером."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 5 (Устранение): Добавьте правило MASQUERADE для внешнего интерфейса enp7s1 в таблицу nat",
+                                "validCommands": [
+                                        "iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE"
+                                ],
+                                "output": "[OK] Правило NAT успешно добавлено в цепочку POSTROUTING.",
+                                "explanation": "Теперь роутер будет подменять адрес источника на свой внешний IP 172.16.1.2."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 6 (Контроль): Проверьте пинг внешнего хоста ya.ru (3 пакета)",
+                                "validCommands": [
+                                        "ping -c 3 ya.ru",
+                                        "ping -c 2 ya.ru",
+                                        "ping ya.ru"
+                                ],
+                                "output": "3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max = 14.120/14.850/15.340 ms\n🎉 АВАРИЯ УСТРАНЕНА! Доступ в интернет восстановлен для всего офиса.",
+                                "explanation": "Стенд полностью восстановил работоспособность. NAT работает!"
+                        }
+                ]
+        },
+        {
+                "id": "inc_2",
+                "title": "Авария #2: OSPF не видит соседа филиала (show ip ospf neighbor пустой)",
+                "symptom": "Маршруты в сеть филиала 192.168.3.0/28 пропали из таблицы маршрутизации. Вывод show ip ospf neighbor пуст.",
+                "host": "hq-rtr",
+                "steps": [
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 1: Проверьте статус соседей OSPF через vtysh",
+                                "validCommands": [
+                                        "vtysh -c 'show ip ospf neighbor'",
+                                        "vtysh -c \"show ip ospf neighbor\"",
+                                        "vtysh"
+                                ],
+                                "output": "hq-rtr# show ip ospf neighbor\n(пустой вывод — соседей нет!)\n[!] OSPF Hello-пакеты не доходят до соседа 10.0.0.2.",
+                                "explanation": "Соседство разорвано. Первым делом проверяем канал передачи — интерфейс туннеля gre1."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 2: Проверьте состояние всех интерфейсов утилитой ip -br -c a",
+                                "validCommands": [
+                                        "ip -br -c a",
+                                        "ip -br a",
+                                        "ip a"
+                                ],
+                                "output": "lo               UNKNOWN        127.0.0.1/8\nenp7s1           UP             172.16.1.2/28\nenp7s2           UP\nenp7s2.100       UP             192.168.1.1/27\nenp7s2.200       UP             192.168.2.1/28\ngre1@NONE        DOWN           10.0.0.1/30\n[!] НАЙДЕНА ПРОБЛЕМА: Интерфейс gre1 находится в состоянии DOWN!",
+                                "explanation": "Туннель выключен административно. OSPF не может передавать пакеты через выключенный интерфейс."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 3 (Устранение): Активируйте интерфейс туннеля gre1 командой ifup",
+                                "validCommands": [
+                                        "ifup gre1",
+                                        "ip link set gre1 up"
+                                ],
+                                "output": "[OK] Interface gre1 is UP.",
+                                "explanation": "Туннельный адаптер переведён в рабочее состояние."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 4: Проверьте доступность удаленного конца туннеля (10.0.0.2)",
+                                "validCommands": [
+                                        "ping -c 2 10.0.0.2",
+                                        "ping -c 3 10.0.0.2",
+                                        "ping 10.0.0.2"
+                                ],
+                                "output": "2 packets transmitted, 2 received, 0% packet loss\n[i] Пинг туннельного IP филиала 10.0.0.2 прошел успешно!",
+                                "explanation": "GRE-инкапсуляция работает. Теперь OSPF должен восстановить соседство."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 5 (Контроль): Проверьте таблицу соседей OSPF в vtysh",
+                                "validCommands": [
+                                        "vtysh -c 'show ip ospf neighbor'",
+                                        "vtysh -c \"show ip ospf neighbor\"",
+                                        "show ip ospf neighbor"
+                                ],
+                                "output": "Neighbor ID     Pri State           Dead Time Address         Interface\n10.0.0.2          1 Full/Backup       33.120s 10.0.0.2        gre1:10.0.0.1\n🎉 АВАРИЯ УСТРАНЕНА! Сосед OSPF перешел в состояние FULL. Маршруты синхронизированы.",
+                                "explanation": "OSPF восстановил соседство и обменялся LSA через поднятый GRE-туннель."
+                        }
+                ]
+        },
+        {
+                "id": "inc_3",
+                "title": "Авария #3: Клиент HQ-CLI не получает IP-адрес по DHCP",
+                "symptom": "Клиент HQ-CLI не может подключиться к сети: dhclient enp0s3.200 завершается ошибкой No DHCPOFFERS received.",
+                "host": "hq-rtr",
+                "steps": [
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 1: На маршрутизаторе HQ-RTR проверьте статус службы dnsmasq",
+                                "validCommands": [
+                                        "systemctl status dnsmasq",
+                                        "service dnsmasq status"
+                                ],
+                                "output": "● dnsmasq.service - DNS and DHCP server\n     Loaded: loaded (/lib/systemd/system/dnsmasq.service)\n     Active: active (running) since Sun 2026-11-08 10:14:02 MSK; 12min ago\n[i] Демон запущен и работает.",
+                                "explanation": "Служба активна, значит проблема в конфигурации интерфейса или пула."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 2: Проверьте файл конфигурации /etc/dnsmasq.conf на HQ-RTR",
+                                "validCommands": [
+                                        "cat /etc/dnsmasq.conf",
+                                        "less /etc/dnsmasq.conf"
+                                ],
+                                "output": "dhcp-range=192.168.2.2,192.168.2.14,72h\ndhcp-option=3,192.168.2.1\ndhcp-option=6,192.168.1.2\ninterface=enp7s2\n[!] ОШИБКА В КОНФИГЕ: Указан interface=enp7s2 (физический линк без тега), а клиенты находятся в сабинтерфейсе VLAN 200 (enp7s2.200)!",
+                                "explanation": "dnsmasq слушал нетегированный порт enp7s2 и игнорировал широковещательные DHCP-запросы из VLAN 200."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 3 (Устранение): Перезапустите dnsmasq после исправления интерфейса на enp7s2.200",
+                                "validCommands": [
+                                        "systemctl restart dnsmasq",
+                                        "service dnsmasq restart"
+                                ],
+                                "output": "[OK] Служба dnsmasq перезапущена с interface=enp7s2.200.",
+                                "explanation": "Конфигурация обновлена, теперь dnsmasq слушает порт 67 на сабинтерфейсе enp7s2.200."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 4 (Контроль): Проверьте утилитой ss, слушает ли dnsmasq UDP-порт 67 (DHCP)",
+                                "validCommands": [
+                                        "ss -ulnp | grep dnsmasq",
+                                        "ss -ulnp | grep 67",
+                                        "ss -unlp | grep dnsmasq"
+                                ],
+                                "output": "UNCONN 0 0 0.0.0.0:67 0.0.0.0:* users:((\"dnsmasq\",pid=1420,fd=4))\n🎉 АВАРИЯ УСТРАНЕНА! DHCP-сервер готов раздавать адреса клиентам в VLAN 200.",
+                                "explanation": "Клиент теперь успешно выполнит dhclient и получит адрес 192.168.2.12."
+                        }
+                ]
+        },
+        {
+                "id": "inc_4",
+                "title": "Авария #4: Ошибка SSH «Connection refused» при входе на HQ-SRV",
+                "symptom": "При попытке подключиться с клиента к серверу HQ-SRV команда ssh sshuser@192.168.1.2 выдаёт ошибку: connect to host 192.168.1.2 port 22: Connection refused.",
+                "host": "hq-srv",
+                "steps": [
+                        {
+                                "prompt": "root@hq-srv:~# ",
+                                "goal": "Шаг 1: На сервере HQ-SRV проверьте статус службы sshd",
+                                "validCommands": [
+                                        "systemctl status sshd",
+                                        "service sshd status",
+                                        "systemctl status ssh"
+                                ],
+                                "output": "● sshd.service - OpenSSH server daemon\n     Loaded: loaded (/lib/systemd/system/sshd.service)\n     Active: active (running)\n[i] Служба SSH активна и работает.",
+                                "explanation": "Демон SSH запущен, но соединение на порт 22 сбрасывается."
+                        },
+                        {
+                                "prompt": "root@hq-srv:~# ",
+                                "goal": "Шаг 2: Проверьте, какие TCP-порты реально слушает sshd утилитой ss",
+                                "validCommands": [
+                                        "ss -tlnp | grep sshd",
+                                        "ss -tlnp | grep 2026",
+                                        "ss -tlnp",
+                                        "ss -tnlp | grep sshd"
+                                ],
+                                "output": "LISTEN 0 128 0.0.0.0:2026 0.0.0.0:* users:((\"sshd\",pid=890,fd=3))\n[!] ПРИЧИНА НАЙДЕНА: sshd настроен на регламентный нестандартный порт 2026, а клиент стучится на дефолтный 22!",
+                                "explanation": "В файле /etc/openssh/sshd_config задан Port 2026 для безопасности."
+                        },
+                        {
+                                "prompt": "user@hq-cli:~$ ",
+                                "goal": "Шаг 3 (Устранение): Подключитесь с клиента с явным указанием порта 2026 по доменному имени",
+                                "validCommands": [
+                                        "ssh sshuser@hq-srv.au-team.irpo -p 2026",
+                                        "ssh -p 2026 sshuser@hq-srv.au-team.irpo",
+                                        "ssh sshuser@192.168.1.2 -p 2026"
+                                ],
+                                "output": "sshuser@hq-srv.au-team.irpo's password: [OK]\nLinux hq-srv 5.10.0 #1 SMP ALT Linux\n[sshuser@hq-srv ~]$\n🎉 АВАРИЯ УСТРАНЕНА! Успешный вход в защищенную консоль сервера.",
+                                "explanation": "Указание ключа -p 2026 решило проблему подключения к нестандартному порту."
+                        }
+                ]
+        },
+        {
+                "id": "inc_5",
+                "title": "Авария #5: Служба FRRouting не запускает OSPF (Failed to start)",
+                "symptom": "После перезапуска маршрутизатора служба динамической маршрутизации frr не поднимает протокол OSPF. Маршруты не передаются.",
+                "host": "hq-rtr",
+                "steps": [
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 1: Проверьте статус службы frr через systemctl",
+                                "validCommands": [
+                                        "systemctl status frr",
+                                        "service frr status"
+                                ],
+                                "output": "● frr.service - FRRouting\n     Active: active (running)\n[i] Сервис запущен, но OSPF не отвечает в vtysh.",
+                                "explanation": "Проверяем файл конфигурации демонов /etc/frr/daemons."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 2: Просмотрите файл /etc/frr/daemons на HQ-RTR",
+                                "validCommands": [
+                                        "cat /etc/frr/daemons",
+                                        "less /etc/frr/daemons"
+                                ],
+                                "output": "zebra=yes\nbgpd=no\nospfd=no\nospf6d=no\n[!] ОШИБКА: В файле daemons указано ospfd=no! Демон OSPF выключен!",
+                                "explanation": "По умолчанию в пакете FRR все демоны отключены, ospfd нужно явно активировать."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 3 (Устранение): Перезапустите службу frr после включения ospfd=yes",
+                                "validCommands": [
+                                        "systemctl restart frr",
+                                        "service frr restart"
+                                ],
+                                "output": "[OK] FRRouting перезапущен. Демон ospfd активен.",
+                                "explanation": "Теперь процесс ospfd запущен и слушает сокеты маршрутизации."
+                        },
+                        {
+                                "prompt": "root@hq-rtr:~# ",
+                                "goal": "Шаг 4 (Контроль): Проверьте статус демона OSPF внутри консоли vtysh",
+                                "validCommands": [
+                                        "vtysh -c 'show ip ospf'",
+                                        "vtysh -c \"show ip ospf\"",
+                                        "show ip ospf",
+                                        "vtysh"
+                                ],
+                                "output": "Routing Process \"ospf 0\" with ID 10.0.0.1\nArea 0 (Backbone)\n🎉 АВАРИЯ УСТРАНЕНА! Демон OSPF активен и участвует в маршрутизации.",
+                                "explanation": "OSPF успешно запущен в магистральной зоне Area 0."
+                        }
+                ]
+        }
+],
+
+    outputReading: [
+        {
+                "id": "out_1",
+                "title": "OSPF Neighbor: Пустой вывод",
+                "command": "hq-rtr# show ip ospf neighbor",
+                "consoleSnippet": "hq-rtr# show ip ospf neighbor\n\nhq-rtr#",
+                "question": "Преподаватель спрашивает: «Что означает абсолютно пустой вывод команды show ip ospf neighbor?»",
+                "options": [
+                        "Соседство OSPF не установлено: интерфейс туннеля gre1 выключен, не совпадает Area (магистральная зона 0) или различается MD5-ключ аутентификации.",
+                        "Всё работает штатно, просто в сети нет широковещательного трафика.",
+                        "Служба vtysh выключена администратором.",
+                        "На маршрутизаторе филиала закончилась оперативная память."
+                ],
+                "correctIndex": 0,
+                "explanation": "В штатном режиме команда обязана вывести соседа 10.0.0.2 со статусом Full/Backup или Full/DROther. Если вывод пуст — пакеты OSPF Hello не доходят или отбрасываются из-за несовпадения параметров."
+        },
+        {
+                "id": "out_2",
+                "title": "DNS: Ошибка «Name or service not known»",
+                "command": "root@hq-cli:~# ping -c 2 hq-srv.au-team.irpo",
+                "consoleSnippet": "root@hq-cli:~# ping -c 2 hq-srv.au-team.irpo\nping: hq-srv.au-team.irpo: Name or service not known",
+                "question": "Преподаватель спрашивает: «В чём причина ошибки Name or service not known?»",
+                "options": [
+                        "DNS-резолвер не смог преобразовать доменное имя в IP-адрес: в файле /etc/resolv.conf не указан DNS-сервер 192.168.1.2 или служба dnsmasq не отвечает.",
+                        "Сервер HQ-SRV физически сгорел или отключен от питания.",
+                        "Протокол ICMP заблокирован файрволом iptables.",
+                        "Неверно настроен шлюз по умолчанию."
+                ],
+                "correctIndex": 0,
+                "explanation": "Ошибка генерируется до отправки пакетов: сетевой стек ОС попытался разрешить имя через локальный резолвер (/etc/resolv.conf), но не получил ответа от DNS-сервера."
+        },
+        {
+                "id": "out_3",
+                "title": "SSH: Ошибка «Connection refused» на порту 22",
+                "command": "user@hq-cli:~$ ssh sshuser@192.168.1.2",
+                "consoleSnippet": "user@hq-cli:~$ ssh sshuser@192.168.1.2\nssh: connect to host 192.168.1.2 port 22: Connection refused",
+                "question": "Преподаватель спрашивает: «О чём говорит статус Connection refused на 22 порту?»",
+                "options": [
+                        "Сервер доступен в сети и прислал TCP RST-пакет: порт 22 закрыт, так как по регламенту sshd перенесён на защищённый порт 2026.",
+                        "Введён неправильный пароль пользователя sshuser.",
+                        "У клиента нет маршрута до сервера 192.168.1.2.",
+                        "Сетевой провод физически отсоединён."
+                ],
+                "correctIndex": 0,
+                "explanation": "Connection refused означает, что узел в сети и ответил отказом: демон sshd не слушает стандартный 22-й порт. Для входа необходимо явно передать ключ -p 2026."
+        },
+        {
+                "id": "out_4",
+                "title": "SSH: Ошибка «Permission denied (publickey,password)»",
+                "command": "user@hq-cli:~$ ssh sshuser@hq-srv.au-team.irpo -p 2026",
+                "consoleSnippet": "user@hq-cli:~$ ssh sshuser@hq-srv.au-team.irpo -p 2026\nsshuser@hq-srv.au-team.irpo's password:\nPermission denied, please try again.\nPermission denied (publickey,password).",
+                "question": "Преподаватель спрашивает: «Что означает ошибка Permission denied при подключении по SSH?»",
+                "options": [
+                        "Порт 2026 открыт и демон отвечает, но введен неверный пароль либо пользователю sshuser заблокирован парольный вход.",
+                        "Служба SSH на сервере аварийно завершила работу.",
+                        "DNS-сервер не смог разрешить доменное имя сервера.",
+                        "Размер MTU туннеля слишком маленький для передачи SSH."
+                ],
+                "correctIndex": 0,
+                "explanation": "Сервер успешно принял TCP-соединение на порту 2026 и запросил аутентификацию, но пароль не подошел. Сеть, маршрутизация и DNS работают идеально, ошибка на уровне учетных данных."
+        },
+        {
+                "id": "out_5",
+                "title": "ip address: Статус «gre1@NONE DOWN»",
+                "command": "root@hq-rtr:~# ip -br -c a",
+                "consoleSnippet": "root@hq-rtr:~# ip -br -c a\nlo               UNKNOWN        127.0.0.1/8\nenp7s1           UP             172.16.1.2/28\nenp7s2           UP\nenp7s2.100       UP             192.168.1.1/27\nenp7s2.200       UP             192.168.2.1/28\ngre1@NONE        DOWN           10.0.0.1/30",
+                "question": "Преподаватель спрашивает: «Что означает статус gre1@NONE DOWN и как его исправить?»",
+                "options": [
+                        "Интерфейс туннеля сконфигурирован в системе, но административно выключен. Требуется выполнить команду `ifup gre1`.",
+                        "Сломался физический сетевой кабель между офисами.",
+                        "Пакет FRRouting повреждён и требует переустановки.",
+                        "На интерфейсе назначен неверный IP-адрес."
+                ],
+                "correctIndex": 0,
+                "explanation": "В ОС Альт после создания профиля интерфейс находится в состоянии DOWN до тех пор, пока не будет поднят скриптом ifup gre1 (или командой ip link set gre1 up)."
+        },
+        {
+                "id": "out_6",
+                "title": "DHCP: Сообщение «No DHCPOFFERS received»",
+                "command": "root@hq-cli:~# dhclient enp0s3.200",
+                "consoleSnippet": "root@hq-cli:~# dhclient enp0s3.200\nDHCPDISCOVER on enp0s3.200 to 255.255.255.255 port 67 interval 3\nDHCPDISCOVER on enp0s3.200 to 255.255.255.255 port 67 interval 7\nDHCPDISCOVER on enp0s3.200 to 255.255.255.255 port 67 interval 14\nNo DHCPOFFERS received.\nNo working leases in persistent database - sleeping.",
+                "question": "Преподаватель спрашивает: «Почему клиент отправляет DHCPDISCOVER, но не получает DHCPOFFER?»",
+                "options": [
+                        "Сервер dnsmasq на HQ-RTR выключен, либо в /etc/dnsmasq.conf не указан интерфейс enp7s2.200, либо нет связности в VLAN 200.",
+                        "Клиент отправляет запросы на неправильный UDP-порт.",
+                        "В локальной сети закончились IP-адреса.",
+                        "На клиенте блокирует запросы встроенный брандмауэр."
+                ],
+                "correctIndex": 0,
+                "explanation": "Клиент рассылает широковещательные запросы на 67 порт, но ни один DHCP-сервер в этом широковещательном домене (VLAN 200) не ответил предложением адреса (DHCPOFFER)."
+        }
+],
+
+    packetJourney: [
+        {
+                "hop": 1,
+                "node": "HQ-CLI (Клиент)",
+                "ip": "192.168.2.12/28",
+                "title": "Шаг 1: Проверка локального IP и шлюза на клиенте",
+                "checkCmd": "ip -br -c a && ip r",
+                "expected": "Интерфейс enp0s3.200 имеет IP 192.168.2.12/28, шлюз по умолчанию: default via 192.168.2.1.",
+                "theory": "Клиент получил адрес по DHCP (опция 3 передала адрес шлюза HQ-RTR 192.168.2.1)."
+        },
+        {
+                "hop": 2,
+                "node": "Канал VLAN 200 (L2/802.1Q)",
+                "ip": "Тэг 200",
+                "title": "Шаг 2: Проверка связности клиента с локальным шлюзом",
+                "checkCmd": "ping -c 2 192.168.2.1",
+                "expected": "0% packet loss. Кадр с тегом VLAN 200 успешно доходит до сабинтерфейса enp7s2.200 на HQ-RTR.",
+                "theory": "Тегированный трафик 802.1Q изолирован от серверов (VLAN 100) на канальном уровне L2."
+        },
+        {
+                "hop": 3,
+                "node": "Ядро маршрутизатора HQ-RTR",
+                "ip": "net.ipv4.ip_forward",
+                "title": "Шаг 3: Пересылка пакетов между интерфейсами (Routing)",
+                "checkCmd": "sysctl net.ipv4.ip_forward",
+                "expected": "net.ipv4.ip_forward = 1. Ядро Linux пересылает входящий пакет из VLAN 200 во внешний интерфейс enp7s1.",
+                "theory": "Без включенного ip_forward Linux отбрасывает любые пакеты, адресованные не ему самому."
+        },
+        {
+                "hop": 4,
+                "node": "NAT / Netfilter на HQ-RTR",
+                "ip": "enp7s1: 172.16.1.2",
+                "title": "Шаг 4: Трансляция адреса источника (SNAT / MASQUERADE)",
+                "checkCmd": "iptables -t nat -L POSTROUTING -nv",
+                "expected": "Правило MASQUERADE активно. Исходный серый IP 192.168.2.12 подменяется на внешний IP 172.16.1.2.",
+                "theory": "Пакеты с частными адресами RFC1918 не маршрутизируются в интернете, поэтому маскировка обязательна."
+        },
+        {
+                "hop": 5,
+                "node": "Транзитный линк ISP (Провайдер)",
+                "ip": "172.16.1.1 ↔ 172.16.1.2",
+                "title": "Шаг 5: Доставка пакета до оборудования провайдера",
+                "checkCmd": "ping -c 2 172.16.1.1",
+                "expected": "Шлюз провайдера ISP отвечает с задержкой < 0.5 мс.",
+                "theory": "Трафик выходит из корпоративного сегмента во внешнюю транзитную сеть провайдера."
+        },
+        {
+                "hop": 6,
+                "node": "DNS-резолвинг (HQ-SRV)",
+                "ip": "192.168.1.2:53 → 77.88.8.8",
+                "title": "Шаг 6: Разрешение доменного имени ya.ru в IP-адрес",
+                "checkCmd": "cat /etc/resolv.conf",
+                "expected": "Клиент отправляет DNS-запрос на 192.168.1.2:53. Сервер опрашивает внешний forwarder 77.88.8.8.",
+                "theory": "dnsmasq на HQ-SRV возвращает клиенту реальный публичный IP Яндекса (например, 77.88.55.242)."
+        },
+        {
+                "hop": 7,
+                "node": "Глобальный интернет (ya.ru)",
+                "ip": "Целевой хост ya.ru",
+                "title": "Шаг 7: Получение ответа ICMP Echo Reply",
+                "checkCmd": "ping -c 3 ya.ru",
+                "expected": "3 packets transmitted, 3 received, 0% packet loss. Полный цикл пройден!",
+                "theory": "Пакет успешно прошел путь: VLAN 200 → Маршрутизация → NAT → ISP → Резолвинг DNS → Ответ из интернета."
+        }
+],
+
+    freeTextQuestions: [
+        {
+                "id": "ft_1",
+                "question": "Объясните своими словами: Что такое NAT и зачем на HQ-RTR настраивается правило MASQUERADE?",
+                "keywords": [
+                        [
+                                "подмен",
+                                "трансляц",
+                                "замен",
+                                "перевод"
+                        ],
+                        [
+                                "локальн",
+                                "частн",
+                                "серы",
+                                "внутренн",
+                                "192.168"
+                        ],
+                        [
+                                "внешн",
+                                "публичн",
+                                "интернет",
+                                "wan",
+                                "isp",
+                                "провайдер"
+                        ],
+                        [
+                                "не маршрутизир",
+                                "нельзя",
+                                "rfc1918",
+                                "один ip"
+                        ]
+                ],
+                "criteria": [
+                        "Упомянута подмена (трансляция) сетевых адресов",
+                        "Указано, что локальные/серые адреса заменяются на внешний IP",
+                        "Объяснено, что частные IP не могут напрямую ходить в интернете"
+                ],
+                "idealAnswer": "NAT (MASQUERADE) — это механизм трансляции сетевых адресов. Он подменяет внутренние частные IP-адреса локальной сети (192.168.0.0), которые не маршрутизируются в интернете, на публичный IP-адрес внешнего интерфейса маршрутизатора enp7s1 для обеспечения выхода в глобальную сеть."
+        },
+        {
+                "id": "ft_2",
+                "question": "Объясните своими словами: Что такое VLAN (802.1Q) и зачем сеть разбита на VLAN 100 и VLAN 200?",
+                "keywords": [
+                        [
+                                "виртуальн",
+                                "vlan",
+                                "802.1q",
+                                "тег",
+                                "метк"
+                        ],
+                        [
+                                "изоляц",
+                                "раздел",
+                                "безопасн",
+                                "трафик",
+                                "домен"
+                        ],
+                        [
+                                "сервер",
+                                "клиент",
+                                "пользовател",
+                                "100",
+                                "200"
+                        ]
+                ],
+                "criteria": [
+                        "Упомянуто логическое разделение физической сети с помощью тегов 802.1Q",
+                        "Указана цель: изоляция и безопасность широковещательного трафика",
+                        "Описано назначение: VLAN 100 для серверов, VLAN 200 для рабочих станций"
+                ],
+                "idealAnswer": "VLAN (802.1Q) — это технология логического разделения одной физической сети на изолированные широковещательные сегменты с помощью тегов. На стенде VLAN 100 выделен под серверную зону (HQ-SRV), а VLAN 200 — под рабочие станции пользователей (HQ-CLI), чтобы изолировать клиентский трафик от серверов."
+        },
+        {
+                "id": "ft_3",
+                "question": "Объясните своими словами: Зачем нужен GRE-туннель и почему его MTU равен 1476?",
+                "keywords": [
+                        [
+                                "туннел",
+                                "инкапсуляц",
+                                "поверх",
+                                "gre"
+                        ],
+                        [
+                                "филиал",
+                                "офис",
+                                "br",
+                                "hq",
+                                "провайдер",
+                                "интернет"
+                        ],
+                        [
+                                "1476",
+                                "24",
+                                "1500",
+                                "заголовок",
+                                "оверхед",
+                                "минус"
+                        ]
+                ],
+                "criteria": [
+                        "Упомянута инкапсуляция корпоративных пакетов через публичную сеть ISP",
+                        "Объяснена связь центрального офиса и филиала",
+                        "Обоснован MTU 1476: стандартный 1500 минус 24 байта заголовков (20 байт IPv4 + 4 байта GRE)"
+                ],
+                "idealAnswer": "GRE-туннель инкапсулирует пакеты корпоративных сетей и протокола OSPF для передачи между офисом и филиалом через транзитную сеть провайдера. MTU равен 1476, потому что стандартный Ethernet MTU 1500 уменьшается на 24 байта дополнительных заголовков (20 байт внешнего IPv4 + 4 байта GRE)."
+        },
+        {
+                "id": "ft_4",
+                "question": "Объясните своими словами: Как OSPF строит маршруты и зачем нужен MD5-ключ на gre1?",
+                "keywords": [
+                        [
+                                "динамическ",
+                                "маршрутизац",
+                                "hello",
+                                "сосед",
+                                "обмен"
+                        ],
+                        [
+                                "area 0",
+                                "магистрал",
+                                "зон",
+                                "0"
+                        ],
+                        [
+                                "md5",
+                                "безопасн",
+                                "защит",
+                                "поддел",
+                                "парол",
+                                "хэш"
+                        ]
+                ],
+                "criteria": [
+                        "Упомянут автоматический обмен маршрутами через Hello-пакеты в магистральной зоне Area 0",
+                        "Описано соседство (neighbor/adjacency) поверх туннеля",
+                        "Объяснена аутентификация MD5: защита от внедрения ложных маршрутов"
+                ],
+                "idealAnswer": "OSPF динамически строит таблицу маршрутизации, обмениваясь Hello-пакетами и LSA через туннель gre1 в магистральной зоне Area 0. Аутентификация MD5 с общим ключом (123qweR%) необходима для защиты от подделки маршрутов и несанкционированного подключения чужих роутеров в транзитной сети."
+        },
+        {
+                "id": "ft_5",
+                "question": "Объясните своими словами: Что передают опции DHCP 3 и 6 клиенту в dnsmasq.conf?",
+                "keywords": [
+                        [
+                                "3",
+                                "шлюз",
+                                "default gateway",
+                                "маршрут"
+                        ],
+                        [
+                                "6",
+                                "dns",
+                                "имен",
+                                "резолв"
+                        ],
+                        [
+                                "автоматическ",
+                                "клиент",
+                                "выда",
+                                "переда"
+                        ]
+                ],
+                "criteria": [
+                        "Опция 3 определена как шлюз по умолчанию (Default Gateway 192.168.2.1)",
+                        "Опция 6 определена как корпоративный DNS-сервер (192.168.1.2)",
+                        "Понятна роль автоматической настройки клиента при загрузке"
+                ],
+                "idealAnswer": "Опция 3 сообщает клиенту адрес шлюза по умолчанию (192.168.2.1), чтобы он знал, куда слать трафик вне своей сети. Опция 6 передает адрес DNS-сервера (192.168.1.2) для автоматического разрешения доменных имён без ручной настройки resolv.conf."
+        },
+        {
+                "id": "ft_6",
+                "question": "Объясните своими словами: Почему на HQ-SRV в resolv.conf указан loopback 127.0.0.1?",
+                "keywords": [
+                        [
+                                "127.0.0.1",
+                                "loopback",
+                                "петл",
+                                "сам себя",
+                                "локальн"
+                        ],
+                        [
+                                "dnsmasq",
+                                "демон",
+                                "служба",
+                                "сервер"
+                        ],
+                        [
+                                "внутренн",
+                                "зона",
+                                "au-team",
+                                "свои имена",
+                                "forwarder",
+                                "77.88.8.8"
+                        ]
+                ],
+                "criteria": [
+                        "Указан опрос локальной службы на самом сервере (loopback)",
+                        "Объяснено, что сервер должен знать свои доменные имена зоны au-team.irpo",
+                        "Упомянута пересылка внешних запросов на вышестоящий DNS (forwarder 77.88.8.8)"
+                ],
+                "idealAnswer": "Адрес 127.0.0.1 заставляет систему опрашивать собственный локальный демон dnsmasq. Это необходимо, чтобы сервер разрешал имена внутренней корпоративной зоны au-team.irpo из своих файлов, а запросы к внешним сайтам пересылал на вышестоящий DNS-сервер 77.88.8.8."
         }
 ]
 };
