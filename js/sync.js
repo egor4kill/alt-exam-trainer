@@ -3,6 +3,7 @@
 
 class ProgressSyncManager {
     constructor() {
+        this.DEFAULT_GDRIVE_URL = 'https://script.google.com/macros/s/AKfycbzHFwQDagJUNcEqyP7Jg7D0BBqgmtJfyXfRQYPye2QtrWLxj6Bev3eI6jpFNU0KDy52/exec';
         this.modal = null;
         this.initDOM();
         this.checkUrlSync();
@@ -282,7 +283,7 @@ function doPost(e) {
     }
 
     getSavedGDriveUrl() {
-        return localStorage.getItem('alt_gdrive_sync_url') || '';
+        return localStorage.getItem('alt_gdrive_sync_url') || this.DEFAULT_GDRIVE_URL;
     }
 
     toggleGDriveInstructions() {
