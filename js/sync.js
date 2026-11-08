@@ -3,7 +3,7 @@
 
 class ProgressSyncManager {
     constructor() {
-        this.DEFAULT_GDRIVE_URL = 'https://script.google.com/macros/s/AKfycbzHFwQDagJUNcEqyP7Jg7D0BBqgmtJfyXfRQYPye2QtrWLxj6Bev3eI6jpFNU0KDy52/exec';
+        this.DEFAULT_GDRIVE_URL = '';
         this.modal = null;
         this.initDOM();
         this.checkUrlSync();
@@ -283,7 +283,13 @@ function doPost(e) {
     }
 
     getSavedGDriveUrl() {
-        return localStorage.getItem('alt_gdrive_sync_url') || this.DEFAULT_GDRIVE_URL;
+        let saved = localStorage.getItem('alt_gdrive_sync_url');
+        // Если запускается с локального компьютера автора, автоматически подключаем персональный скрипт
+        if (!saved && (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            saved = 'https://script.google.com/macros/s/AKfycbzHFwQDagJUNcEqyP7Jg7D0BBqgmtJfyXfRQYPye2QtrWLxj6Bev3eI6jpFNU0KDy52/exec';
+            localStorage.setItem('alt_gdrive_sync_url', saved);
+        }
+        return saved || '';
     }
 
     toggleGDriveInstructions() {
