@@ -164,6 +164,7 @@ class ProgressSyncManager {
             <!-- Вкладки способов синхронизации -->
             <div class="subtabs-group mb-3" id="sync-subtabs">
                 <button class="trouble-subtab active" onclick="progressSyncManager.switchSyncTab('qr')">📱 На телефон (QR / Ссылка)</button>
+                <button class="trouble-subtab" onclick="progressSyncManager.switchSyncTab('gdrive')">☁️ Google Диск</button>
                 <button class="trouble-subtab" onclick="progressSyncManager.switchSyncTab('file')">💾 Файл / Репозиторий</button>
                 <button class="trouble-subtab" onclick="progressSyncManager.switchSyncTab('code')">📋 Код вручную</button>
             </div>
@@ -185,6 +186,52 @@ class ProgressSyncManager {
                             📋 Скопировать ссылку синхронизации
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Способ 2: Google Диск (Персональный Webhook) -->
+            <div id="sync-tab-gdrive" class="sync-tab-pane hidden">
+                <div class="alert alert-info text-xs mb-3">
+                    <b>☁️ Синхронизация с вашим личным Google Диском:</b><br>
+                    Файл <code>alt_trainer_progress.json</code> сохраняется в ваш личный Google Диск. Другие пользователи сайта никак не могут его увидеть или перезаписать!
+                </div>
+                <div class="mb-3">
+                    <label class="text-xs text-light mb-1 d-block">Ваш личный URL скрипта Google Apps Script:</label>
+                    <input type="text" id="gdrive-webhook-url" class="term-input mb-1" style="width:100%; font-size:0.8rem; padding:0.45rem;" 
+                           placeholder="https://script.google.com/macros/s/.../exec"
+                           value="${this.getSavedGDriveUrl()}">
+                    <span class="text-xs text-muted">Сохраняется только в вашем браузере. Достаточно ввести один раз.</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap mb-2">
+                    <button class="btn btn-sm btn-success" onclick="progressSyncManager.saveToGDrive()">
+                        💾 Сохранить на Google Диск
+                    </button>
+                    <button class="btn btn-sm btn-outline text-cyan" onclick="progressSyncManager.loadFromGDrive()">
+                        📥 Загрузить с Google Диска
+                    </button>
+                    <button class="btn btn-sm btn-outline text-yellow" onclick="progressSyncManager.toggleGDriveInstructions()">
+                        ❓ Как настроить за 1 минуту
+                    </button>
+                </div>
+                <div id="gdrive-setup-instructions" class="hidden alert alert-info text-xs mt-3" style="background:#070d18; border-color:rgba(56, 189, 248, 0.35);">
+                    <h5 class="text-yellow mb-2">📝 4 простых шага для подключения вашего Google Диска:</h5>
+                    <ol style="padding-left:1.2rem; line-height:1.6;" class="text-light">
+                        <li>Откройте <a href="https://script.google.com/home/start" target="_blank" class="text-cyan underline">script.google.com</a> (под вашим аккаунтом Google) и нажмите <b>«Новый проект»</b>.</li>
+                        <li>Сотрите всё и вставьте этот мини-код (всего 15 строк):
+<pre style="background:#020617; padding:0.5rem; border-radius:4px; margin:0.3rem 0; overflow-x:auto; color:#38bdf8;">function doGet() {
+  var f = DriveApp.getFilesByName("alt_trainer_progress.json");
+  return ContentService.createTextOutput(f.hasNext() ? f.next().getBlob().getDataAsString() : "{}").setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) {
+  var f = DriveApp.getFilesByName("alt_trainer_progress.json");
+  if (f.hasNext()) { f.next().setContent(e.postData.contents); }
+  else { DriveApp.createFile("alt_trainer_progress.json", e.postData.contents, MimeType.PLAIN_TEXT); }
+  return ContentService.createTextOutput('{"status":"ok"}').setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                        </li>
+                        <li>Нажмите синюю кнопку <b>«Развернуть» ➔ «Новое развертывание»</b>, выберите тип <b>«Веб-приложение»</b>, в поле <i>«У кого есть доступ»</i> укажите <b>«Все»</b> (Anyone), и нажмите «Развернуть».</li>
+                        <li>Скопируйте полученный <b>URL веб-приложения</b> и вставьте в поле выше! Всё готово!</li>
+                    </ol>
                 </div>
             </div>
 
@@ -232,6 +279,73 @@ class ProgressSyncManager {
         // Подсветка активной кнопки
         const eventBtn = window.event?.target;
         if (eventBtn) eventBtn.classList.add('active');
+    }
+
+    getSavedGDriveUrl() {
+        return localStorage.getItem('alt_gdrive_sync_url') || '';
+    }
+
+    toggleGDriveInstructions() {
+        const box = document.getElementById('gdrive-setup-instructions');
+        if (box) box.classList.toggle('hidden');
+    }
+
+    async saveToGDrive() {
+        const input = document.getElementById('gdrive-webhook-url');
+        const url = (input?.value || this.getSavedGDriveUrl()).trim();
+        if (!url || !url.startsWith('https://script.google.com/')) {
+            alert('✖ Введите корректный URL веб-приложения Google Apps Script (начинается с https://script.google.com/...)');
+            return;
+        }
+
+        localStorage.setItem('alt_gdrive_sync_url', url);
+        const progress = this.exportAllProgress();
+
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(progress)
+            });
+            alert('🎉 Прогресс успешно сохранён на ваш Google Диск!\nФайл: alt_trainer_progress.json');
+        } catch (err) {
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(progress)
+                });
+                alert('✔ Запрос на сохранение отправлен в Google Диск!\nФайл alt_trainer_progress.json обновлён.');
+            } catch (fallbackErr) {
+                alert('✖ Ошибка соединения с Google Apps Script: ' + fallbackErr.message);
+            }
+        }
+    }
+
+    async loadFromGDrive() {
+        const input = document.getElementById('gdrive-webhook-url');
+        const url = (input?.value || this.getSavedGDriveUrl()).trim();
+        if (!url || !url.startsWith('https://script.google.com/')) {
+            alert('✖ Введите корректный URL веб-приложения Google Apps Script');
+            return;
+        }
+
+        localStorage.setItem('alt_gdrive_sync_url', url);
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data && data.storage) {
+                this.applyProgressData(data);
+                alert('🎉 Прогресс успешно загружен с вашего Google Диска!');
+                window.location.reload();
+            } else {
+                alert('ℹ Файл на Google Диске пока пуст или не содержит прогресса. Сначала нажмите «Сохранить на Google Диск».');
+            }
+        } catch (err) {
+            alert('✖ Не удалось загрузить прогресс из Google Apps Script: ' + err.message + '\nУбедитесь, что веб-приложение развернуто с доступом "Все" (Anyone).');
+        }
     }
 
     copySyncUrl() {
