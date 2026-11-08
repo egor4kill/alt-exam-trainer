@@ -513,13 +513,15 @@ const APP_DATA = {
                 "topicId": 3,
                 "host": "br-srv",
                 "prompt": "root@br-srv:~# ",
-                "task": "Назначьте статический IP 192.168.3.2/28 интерфейсу enp0s3 на сервере BR-SRV",
+                "task": "Назначьте статический IP 192.168.3.2/28 интерфейсу enp0s3 (или enp7s1) на сервере BR-SRV",
                 "correctAnswers": [
+                        "echo '192.168.3.2/28' > /etc/net/ifaces/enp0s3/ipv4address",
+                        "echo 192.168.3.2/28 > /etc/net/ifaces/enp0s3/ipv4address",
                         "echo '192.168.3.2/28' > /etc/net/ifaces/enp7s1/ipv4address",
                         "echo 192.168.3.2/28 > /etc/net/ifaces/enp7s1/ipv4address"
                 ],
                 "hint1": "Сервер филиала получает второй адрес локальной подсети 192.168.3.0/28.",
-                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp7s1/ipv4address",
+                "hint2": "Синтаксис: echo '<IP/маска>' > /etc/net/ifaces/enp0s3/ipv4address (или enp7s1)",
                 "explanation": "Назначает статический IP серверу филиала."
         },
         {
@@ -529,11 +531,13 @@ const APP_DATA = {
                 "prompt": "root@br-srv:~# ",
                 "task": "Укажите шлюз по умолчанию 192.168.3.1 на сервере BR-SRV",
                 "correctAnswers": [
+                        "echo 'default via 192.168.3.1' > /etc/net/ifaces/enp0s3/ipv4route",
+                        "echo default via 192.168.3.1 > /etc/net/ifaces/enp0s3/ipv4route",
                         "echo 'default via 192.168.3.1' > /etc/net/ifaces/enp7s1/ipv4route",
                         "echo default via 192.168.3.1 > /etc/net/ifaces/enp7s1/ipv4route"
                 ],
                 "hint1": "Шлюзом для BR-SRV является локальный порт маршрутизатора BR-RTR.",
-                "hint2": "Синтаксис: echo 'default via <IP>' > .../ipv4route",
+                "hint2": "Синтаксис: echo 'default via <IP>' > /etc/net/ifaces/enp0s3/ipv4route (или enp7s1)",
                 "explanation": "Задает маршрут к шлюзу филиала."
         },
         {
@@ -1472,13 +1476,15 @@ const APP_DATA = {
                 "topicId": 8,
                 "host": "br-srv",
                 "prompt": "root@br-srv:~# ",
-                "task": "На BR-SRV укажите корпоративный DNS 192.168.1.2 в resolv.conf интерфейса enp0s3",
+                "task": "На BR-SRV укажите корпоративный DNS 192.168.1.2 в resolv.conf интерфейса enp0s3 (или enp7s1)",
                 "correctAnswers": [
+                        "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp0s3/resolv.conf",
+                        "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp0s3/resolv.conf",
                         "echo 'nameserver 192.168.1.2' > /etc/net/ifaces/enp7s1/resolv.conf",
                         "echo nameserver 192.168.1.2 > /etc/net/ifaces/enp7s1/resolv.conf"
                 ],
                 "hint1": "Сервер филиала переключается на корпоративный DNS.",
-                "hint2": "Синтаксис: echo 'nameserver <IP_HQ_SRV>' > .../resolv.conf",
+                "hint2": "Синтаксис: echo 'nameserver <IP_HQ_SRV>' > /etc/net/ifaces/enp0s3/resolv.conf (или enp7s1)",
                 "explanation": "Настраивает DNS на сервере филиала."
         },
         {
