@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { window.teacherTrainer = new TeacherExamTrainer(); } catch (e) { console.error('Error init TeacherExamTrainer:', e); }
     try { window.topologyManager = new TopologyManager(); } catch (e) { console.error('Error init TopologyManager:', e); }
     try { window.examQAManager = new ExamQAManager(); } catch (e) { console.error('Error init ExamQAManager:', e); }
+    try { window.progressSyncManager = new ProgressSyncManager(); } catch (e) { console.error('Error init ProgressSyncManager:', e); }
 
     // Рендер шпаргалки конфигураций
     try { renderReferenceTables(); } catch (e) { console.error('Error renderReferenceTables:', e); }
