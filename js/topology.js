@@ -84,6 +84,7 @@ class TopologyManager {
                 <td><b class="text-cyan">${i.name}</b></td>
                 <td><code>${i.ip}</code></td>
                 <td>${i.gw}</td>
+                <td><span class="text-yellow font-bold">${i.to || '—'}</span></td>
                 <td class="text-sm text-muted">${i.desc}</td>
             </tr>
         `).join('');
@@ -100,6 +101,18 @@ class TopologyManager {
             <div class="mb-3">
                 <b>Роль в стенде:</b> ${node.role}
             </div>
+
+            ${node.defenseSpeech ? `
+            <div class="alert alert-info mt-3 mb-3" style="background: rgba(14, 165, 233, 0.12); border-left: 4px solid #06b6d4; padding: 0.8rem 1rem; border-radius: 6px;">
+                <div class="d-flex align-center gap-2 mb-1">
+                    <span class="text-lg">🗣️</span>
+                    <b class="text-yellow" style="font-size: 0.95rem;">Что сказать преподавателю при вопросе об интерфейсах:</b>
+                </div>
+                <p class="mb-0 text-sm" style="color: #f1f5f9; line-height: 1.55; font-style: italic;">
+                    ${node.defenseSpeech}
+                </p>
+            </div>
+            ` : ''}
             
             <h4 class="mt-4 mb-2 text-cyan">Сетевые интерфейсы</h4>
             <div class="table-responsive">
@@ -109,6 +122,7 @@ class TopologyManager {
                             <th>Интерфейс</th>
                             <th>IP / Маска</th>
                             <th>Шлюз</th>
+                            <th>Куда ведёт (линк)</th>
                             <th>Назначение</th>
                         </tr>
                     </thead>

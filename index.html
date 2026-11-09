@@ -681,7 +681,7 @@
             <div class="theory-mode-selector mb-4">
                 <div class="subtabs-group">
                     <button id="qa-mode-cards" class="trouble-subtab active">
-                        📚 Карточки теории и билеты (14 вопросов)
+                        📚 Карточки теории и билеты (16 вопросов)
                     </button>
                     <button id="qa-mode-freetext" class="trouble-subtab">
                         ✍️ Тренажёр «Ответ своими словами» (с проверкой)
@@ -1029,6 +1029,151 @@
                     </div>
 
                     <div class="plain-cheats-grid" id="plain-cheats-grid-container">
+                        <!-- 0. Сетевые интерфейсы и маршруты: куда ведёт каждый IP -->
+                        <div class="plain-cheat-card" data-tags="isp hq rtr br srv cli enp7s1 enp7s2 enp7s3 линки интерфейсы топология куда ведет маршруты шлюзы" style="border-color: rgba(6, 182, 212, 0.45);">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🗺️</span>
+                                    <b class="text-cyan">Сетевые интерфейсы стенда: куда ведёт каждый IP и как отвечать преподавателю</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p class="font-bold text-yellow mb-2">🧠 Главное мнемоническое правило стенда (1 – 2 – 3):</p>
+                                <ul class="plain-list mb-3">
+                                    <li><b>Внешние линки к провайдеру (172.16.X.0/28):</b> <code>172.16.1.X</code> — Главный офис (HQ), <code>172.16.2.X</code> — Филиал (BR). На провайдере всегда <code>.1</code> (шлюз), на роутерах офисов — <code>.2</code> (входной порт <code>enp7s1</code>).</li>
+                                    <li><b>Внутренние подсети (192.168.X.0):</b> <code>.1.X</code> — Серверная HQ (VLAN 100), <code>.2.X</code> — Клиенты HQ (VLAN 200), <code>.3.X</code> — Сервер филиала BR. Роутер всегда <code>.1</code>, сервер всегда <code>.2</code>!</li>
+                                    <li><b>Туннель GRE (10.0.0.0/30):</b> HQ = <code>10.0.0.1</code>, BR = <code>10.0.0.2</code>, MTU = <code>1476</code>.</li>
+                                </ul>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table-custom text-xs">
+                                        <thead>
+                                            <tr>
+                                                <th>Узел</th>
+                                                <th>Интерфейс</th>
+                                                <th>IP / Маска</th>
+                                                <th>Шлюз</th>
+                                                <th>Куда физически ведёт</th>
+                                                <th>Назначение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><b class="text-blue">ISP</b></td>
+                                                <td><code>enp7s1</code></td>
+                                                <td>DHCP (WAN)</td>
+                                                <td>Шлюз полигона</td>
+                                                <td><span class="text-green">Реальный Интернет</span></td>
+                                                <td>Вход интернета, NAT (MASQUERADE)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-blue">ISP</b></td>
+                                                <td><code>enp7s2</code></td>
+                                                <td>172.16.1.1/28</td>
+                                                <td>—</td>
+                                                <td><span class="text-cyan">HQ-RTR (enp7s1)</span></td>
+                                                <td>Линк №1 к главному офису. ISP — шлюз</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-blue">ISP</b></td>
+                                                <td><code>enp7s3</code></td>
+                                                <td>172.16.2.1/28</td>
+                                                <td>—</td>
+                                                <td><span class="text-yellow">BR-RTR (enp7s1)</span></td>
+                                                <td>Линк №2 к филиалу. ISP — шлюз</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-green">HQ-RTR</b></td>
+                                                <td><code>enp7s1</code></td>
+                                                <td>172.16.1.2/28</td>
+                                                <td>172.16.1.1</td>
+                                                <td><span class="text-blue">ISP (enp7s2)</span></td>
+                                                <td>Внешний линк головного офиса (WAN)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-green">HQ-RTR</b></td>
+                                                <td><code>enp7s2.100</code></td>
+                                                <td>192.168.1.1/27</td>
+                                                <td>—</td>
+                                                <td><span class="text-purple">HQ-SRV (.1.2)</span></td>
+                                                <td>VLAN 100 — Шлюз серверного сегмента</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-green">HQ-RTR</b></td>
+                                                <td><code>enp7s2.200</code></td>
+                                                <td>192.168.2.1/28</td>
+                                                <td>—</td>
+                                                <td><span class="text-cyan">HQ-CLI (DHCP)</span></td>
+                                                <td>VLAN 200 — Шлюз клиентов (раздача DHCP)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-green">HQ-RTR</b></td>
+                                                <td><code>gre1</code></td>
+                                                <td>10.0.0.1/30</td>
+                                                <td>—</td>
+                                                <td><span class="text-yellow">BR-RTR (gre1)</span></td>
+                                                <td>GRE-туннель к филиалу (MTU 1476, OSPF Area 0)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-purple">HQ-SRV</b></td>
+                                                <td><code>enp0s3.100</code></td>
+                                                <td>192.168.1.2/27</td>
+                                                <td>192.168.1.1</td>
+                                                <td><span class="text-green">HQ-RTR (enp7s2.100)</span></td>
+                                                <td>Единственный порт сервера (DNS, SSH:2026)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-cyan">HQ-CLI</b></td>
+                                                <td><code>enp0s3.200</code></td>
+                                                <td>DHCP (.12)</td>
+                                                <td>192.168.2.1</td>
+                                                <td><span class="text-green">HQ-RTR (enp7s2.200)</span></td>
+                                                <td>Клиентская машина пользователя</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-yellow">BR-RTR</b></td>
+                                                <td><code>enp7s1</code></td>
+                                                <td>172.16.2.2/28</td>
+                                                <td>172.16.2.1</td>
+                                                <td><span class="text-blue">ISP (enp7s3)</span></td>
+                                                <td>Внешний линк филиала (WAN)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-yellow">BR-RTR</b></td>
+                                                <td><code>enp7s2</code></td>
+                                                <td>192.168.3.1/28</td>
+                                                <td>—</td>
+                                                <td><span class="text-pink">BR-SRV (.3.2)</span></td>
+                                                <td>Шлюз в локальную сеть филиала</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-yellow">BR-RTR</b></td>
+                                                <td><code>gre1</code></td>
+                                                <td>10.0.0.2/30</td>
+                                                <td>—</td>
+                                                <td><span class="text-green">HQ-RTR (gre1)</span></td>
+                                                <td>GRE-туннель к HQ (MTU 1476, OSPF Area 0)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-pink">BR-SRV</b></td>
+                                                <td><code>enp7s1</code></td>
+                                                <td>192.168.3.2/28</td>
+                                                <td>192.168.3.1</td>
+                                                <td><span class="text-yellow">BR-RTR (enp7s2)</span></td>
+                                                <td>Сервер филиала для тестов сквозного пинга</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="plain-tip">
+                                    💡 <b>Что ответить преподавателю, если он спросит на ISP «Куда ведёт enp7s1 / enp7s2 / enp7s3?»:</b><br>
+                                    <i>«enp7s1 — внешний WAN-интерфейс в Интернет по DHCP с NAT Masquerade. enp7s2 (172.16.1.1/28) соединяет нас с Главным офисом HQ-RTR (противоположный порт enp7s1: 172.16.1.2). enp7s3 (172.16.2.1/28) соединяет нас с Филиалом BR-RTR (противоположный порт enp7s1: 172.16.2.2). Провайдер является шлюзом по умолчанию для обоих офисов».</i>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 1. /etc/net -->
                         <div class="plain-cheat-card" data-tags="etc net interfaces ip vlan host options altlinux">
                             <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
