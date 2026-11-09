@@ -261,7 +261,7 @@ const APP_DATA = {
                 "topicId": 2,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Проверьте установленный FQDN с помощью команды hostname -f",
+                "task": "Проверьте установленное полное доменное имя (FQDN) хоста",
                 "correctAnswers": [
                         "hostname -f",
                         "hostname --fqdn"
@@ -275,7 +275,7 @@ const APP_DATA = {
                 "topicId": 2,
                 "host": "isp",
                 "prompt": "root@isp:~# ",
-                "task": "Обновите кэш списков пакетов в репозиториях (apt-get update)",
+                "task": "Обновите кэш списков пакетов в репозиториях APT",
                 "correctAnswers": [
                         "apt-get update"
                 ],
@@ -1057,7 +1057,7 @@ const APP_DATA = {
                 "topicId": 6,
                 "host": "hq-rtr",
                 "prompt": "hq-rtr# ",
-                "task": "Перейдите в режим конфигурации в консоли vtysh (conf t)",
+                "task": "Перейдите в режим глобальной конфигурации в консоли vtysh",
                 "correctAnswers": [
                         "conf t",
                         "configure terminal"
@@ -1071,7 +1071,7 @@ const APP_DATA = {
                 "topicId": 6,
                 "host": "hq-rtr",
                 "prompt": "hq-rtr(config)# ",
-                "task": "Включите процесс маршрутизации OSPF (router ospf)",
+                "task": "Включите контекст процесса маршрутизации OSPF",
                 "correctAnswers": [
                         "router ospf"
                 ],
@@ -1163,7 +1163,7 @@ const APP_DATA = {
                 "topicId": 7,
                 "host": "hq-rtr",
                 "prompt": "root@hq-rtr:~# ",
-                "task": "На HQ-RTR обновите кэш списков пакетов (apt-get update)",
+                "task": "На HQ-RTR обновите кэш пакетов APT",
                 "correctAnswers": [
                         "apt-get update"
                 ],
@@ -1246,7 +1246,7 @@ const APP_DATA = {
                 "topicId": 7,
                 "host": "hq-cli",
                 "prompt": "root@hq-cli:~# ",
-                "task": "На клиенте HQ-CLI проверьте состояние сетевых интерфейсов через ip -br -c a",
+                "task": "На клиенте HQ-CLI проверьте состояние и адреса сетевых интерфейсов",
                 "correctAnswers": [
                         "ip -br -c a",
                         "ip -br a",
@@ -1261,7 +1261,7 @@ const APP_DATA = {
                 "topicId": 7,
                 "host": "hq-cli",
                 "prompt": "root@hq-cli:~# ",
-                "task": "Освободите текущий полученный IP-адрес с помощью dhclient -r",
+                "task": "Освободите текущий полученный по DHCP сетевой адрес (release)",
                 "correctAnswers": [
                         "dhclient -r",
                         "dhclient -r enp0s3.200",
@@ -1358,7 +1358,7 @@ const APP_DATA = {
                 "topicId": 8,
                 "host": "hq-srv",
                 "prompt": "root@hq-srv:~# ",
-                "task": "На сервере HQ-SRV обновите список пакетов через apt-get update",
+                "task": "На сервере HQ-SRV обновите кэш пакетов APT",
                 "correctAnswers": [
                         "apt-get update"
                 ],

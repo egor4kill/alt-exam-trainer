@@ -490,6 +490,21 @@
                     </div>
                 </div>
 
+                                <!-- Выбор темы экзамена -->
+                <div class="mb-4 text-center">
+                    <label for="exam-topic-select" class="text-sm text-cyan font-bold block mb-1">🎯 Выберите направление сдачи экзамена:</label>
+                    <select id="exam-topic-select" class="form-select" style="max-width: 480px; width: 100%; margin: 0 auto; background: #0f172a; color: #fff; border: 1px solid #06b6d4; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.95rem;">
+                        <option value="all">🌟 Все темы подряд (Итоговый срез 2–8) [8 билетов]</option>
+                        <option value="2">Практика 2: FQDN и Часовой пояс (timedatectl, hostname)</option>
+                        <option value="3">Практика 3: Сеть в ОС «Альт» (/etc/net, options, ip)</option>
+                        <option value="4">Практика 4: VLAN 100 / 200 / 999 (802.1Q сабинтерфейсы)</option>
+                        <option value="5">Практика 5: NAT, iptables и sysctl (MASQUERADE, forward)</option>
+                        <option value="6">Практика 6: GRE-туннель и OSPF (FRR, vtysh, MD5, MTU 1476)</option>
+                        <option value="7">Практика 7: DHCP-сервер (dnsmasq, dhclient)</option>
+                        <option value="8">Практика 8: DNS-сервер и SSH (au-team.irpo, порт 2026)</option>
+                    </select>
+                </div>
+
                 <button id="exam-btn-start" class="btn btn-lg btn-success">
                     ▶ Начать экзамен (15:00)
                 </button>

@@ -25,6 +25,7 @@ class ExamManager {
     initDOMElements() {
         this.timerDisplay = document.getElementById('exam-timer-display');
         this.btnStartExam = document.getElementById('exam-btn-start');
+        this.topicSelect = document.getElementById('exam-topic-select');
         this.btnRestartExam = document.getElementById('exam-btn-restart');
         this.examIntroBox = document.getElementById('exam-intro-box');
         this.examActiveContainer = document.getElementById('exam-active-container');
@@ -79,33 +80,57 @@ class ExamManager {
         });
     }
 
-    generateExamPool() {
-        // 1. Выбираем 5 практических задач из разных тем
-        const availableTopics = [2, 3, 4, 5, 6, 7, 8];
-        const shuffledTopics = [...availableTopics].sort(() => 0.5 - Math.random());
+        generateExamPool() {
+        const selectedTopic = this.topicSelect ? this.topicSelect.value : 'all';
         const selectedPractical = [];
+        const selectedTeacher = [];
 
-        // Берем по 1 задаче из первых 5 случайно выбранных тем
-        for (let i = 0; i < 5; i++) {
-            const topicId = shuffledTopics[i];
-            const topicTasks = APP_DATA.commandTasks.filter(t => t.topicId === topicId);
-            const randomTask = topicTasks[Math.floor(Math.random() * topicTasks.length)];
-            if (randomTask) {
-                selectedPractical.push(Object.assign({}, randomTask, {
+        if (selectedTopic === 'all') {
+            // 1. Выбираем 5 практических задач из разных тем
+            const availableTopics = [2, 3, 4, 5, 6, 7, 8];
+            const shuffledTopics = [...availableTopics].sort(() => 0.5 - Math.random());
+
+            for (let i = 0; i < 5; i++) {
+                const topicId = shuffledTopics[i];
+                const topicTasks = APP_DATA.commandTasks.filter(t => t.topicId === topicId);
+                const randomTask = topicTasks[Math.floor(Math.random() * topicTasks.length)];
+                if (randomTask) {
+                    selectedPractical.push(Object.assign({}, randomTask, {
+                        type: 'practical',
+                        examTypeLabel: 'Практическая настройка'
+                    }));
+                }
+            }
+
+            // 2. Выбираем 3 вопроса преподавателя
+            const teacherPool = [...APP_DATA.teacherTasks].sort(() => 0.5 - Math.random());
+            teacherPool.slice(0, 3).forEach(t => {
+                selectedTeacher.push(Object.assign({}, t, {
+                    type: 'teacher',
+                    examTypeLabel: 'Вопрос преподавателя'
+                }));
+            });
+        } else {
+            // Экзамен по конкретной выбранной теме
+            const tid = parseInt(selectedTopic, 10);
+            const topicTasks = [...APP_DATA.commandTasks.filter(t => t.topicId === tid)].sort(() => 0.5 - Math.random());
+            topicTasks.slice(0, 5).forEach(t => {
+                selectedPractical.push(Object.assign({}, t, {
                     type: 'practical',
                     examTypeLabel: 'Практическая настройка'
                 }));
-            }
+            });
+
+            // 3 вопроса преподавателя
+            const teacherPool = [...APP_DATA.teacherTasks].sort(() => 0.5 - Math.random());
+            teacherPool.slice(0, 3).forEach(t => {
+                selectedTeacher.push(Object.assign({}, t, {
+                    type: 'teacher',
+                    examTypeLabel: 'Вопрос преподавателя'
+                }));
+            });
         }
 
-        // 2. Выбираем 3 вопроса преподавателя
-        const teacherPool = [...APP_DATA.teacherTasks].sort(() => 0.5 - Math.random());
-        const selectedTeacher = teacherPool.slice(0, 3).map(t => Object.assign({}, t, {
-            type: 'teacher',
-            examTypeLabel: 'Вопрос преподавателя'
-        }));
-
-        // Объединяем и перемешиваем
         return [...selectedPractical, ...selectedTeacher];
     }
 
@@ -179,20 +204,32 @@ class ExamManager {
 
         this.renderNavPills();
 
+        // Определение названия темы для билета
+        let topicBadgeName = '';
+        if (q.topicId) {
+            const topicObj = APP_DATA.topics?.find(t => t.id === q.topicId);
+            if (topicObj) topicBadgeName = topicObj.badge || topicObj.name;
+        } else if (q.type === 'teacher') {
+            topicBadgeName = 'Опрос преподавателя';
+        }
+
         if (this.qBadge) {
-            this.qBadge.textContent = `${q.examTypeLabel} • Узел: ${q.host.toUpperCase()}`;
+            this.qBadge.textContent = `${q.examTypeLabel} • ${topicBadgeName ? topicBadgeName + ' • ' : ''}Узел: ${q.host.toUpperCase()}`;
             this.qBadge.className = `badge ${q.type === 'practical' ? 'badge-topic' : 'badge-warning'}`;
         }
 
         if (this.qTitle) {
-            this.qTitle.textContent = `Билет №${idx + 1} из ${this.questions.length}`;
+            this.qTitle.innerHTML = `Билет №${idx + 1} из ${this.questions.length} <span class="text-xs text-muted font-normal">(${topicBadgeName || q.host.toUpperCase()})</span>`;
         }
 
         if (this.qDesc) {
             if (q.type === 'practical') {
-                this.qDesc.innerHTML = `<b>Цель:</b> ${q.task}`;
+                this.qDesc.innerHTML = `<b>Цель:</b> ${this.escapeHtml(q.task)}`;
             } else {
-                this.qDesc.innerHTML = `<b>Преподаватель спрашивает:</b> «${q.question}»<br><span class="text-sm text-cyan">Цель: ${q.goal}</span>`;
+                // Исправление undefined: в teacherTasks поля называются teacherSpeech и task
+                const speech = q.teacherSpeech || q.question || 'Ответьте на вопрос преподавателя';
+                const goal = q.task || q.goal || 'Выполните требуемую команду проверки';
+                this.qDesc.innerHTML = `<b>Преподаватель спрашивает:</b> «${this.escapeHtml(speech)}»<br><span class="text-sm text-cyan font-bold">Цель: ${this.escapeHtml(goal)}</span>`;
             }
         }
 
