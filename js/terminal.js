@@ -412,7 +412,7 @@ class TerminalTrainer {
     resolvePath(rawPath) {
         if (!rawPath) return this.cwd || '/root';
         let p = rawPath.trim();
-        const curTask = this.filteredTasks[this.currentTaskIndex];
+        const curTask = (this.filteredTasks && this.filteredTasks[this.currentTaskIndex]) ? this.filteredTasks[this.currentTaskIndex] : null;
         const isRoot = curTask ? (curTask.host !== 'hq-cli') : true;
         const home = isRoot ? '/root' : '/home/user';
 
