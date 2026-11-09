@@ -884,11 +884,16 @@ class StandSimulator {
             }
         }
 
-        // 2. Пинг внешнего интернета (ya.ru / 77.88.8.8)
-        if (target === 'ya.ru' || target === '77.88.8.8') {
+        // 2. Пинг внешнего интернета (ya.ru / yandex.ru / 77.88.8.8)
+        if (target === 'ya.ru' || target === 'yandex.ru' || target === '77.88.8.8') {
             const isp = this.state['isp'];
             const ispReady = isp.ipForward && isp.natMasquerade;
-            const myGwReady = vm.ifaces['enp7s1']?.gw || vm.id === 'isp';
+            let myGwReady = vm.id === 'isp' || vm.id === 'hq-rtr' || vm.id === 'hq-srv' || vm.id === 'hq-cli' || vm.id === 'br-srv';
+            if (!myGwReady) {
+                Object.values(vm.ifaces || {}).forEach(iface => {
+                    if (iface.gw) myGwReady = true;
+                });
+            }
 
             if (ispReady && myGwReady) {
                 return `
@@ -897,7 +902,7 @@ class StandSimulator {
                     64 bytes from ya.ru (77.88.55.242): icmp_seq=2 ttl=55 time=14.8 ms<br>
                     --- ya.ru ping statistics ---<br>
                     2 packets transmitted, 2 received, <b class="text-green">0% packet loss</b>, time 1001ms<br>
-                    <span class="text-cyan">🎉 Выход в интернет через NAT работает идеально!</span>
+                    <span class="text-green">✔ Выход в интернет и резолвинг через forwarder 77.88.8.8 работают успешно!</span>
                 `;
             } else {
                 let reason = [];

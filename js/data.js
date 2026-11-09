@@ -835,9 +835,15 @@ const APP_DATA = {
                 "prompt": "root@hq-rtr:~# ",
                 "task": "Проверьте доступ в глобальный интернет, отправив 3 пинга на ya.ru с HQ-RTR",
                 "correctAnswers": [
-                        "ping -c 3 ya.ru",
-                        "ping -c 3 yandex.ru"
-                ],
+			"ping -c 3 ya.ru",
+			"ping -c 3 77.88.8.8",
+			"ping -c 3 yandex.ru",
+			"ping ya.ru",
+			"ping 77.88.8.8",
+			"ping yandex.ru",
+			"ping -c 4 ya.ru",
+			"ping -c 2 ya.ru"
+		],
                 "hint1": "Проверка прохождения пакетов сквозь цепочку NAT на ISP.",
                 "hint2": "Синтаксис: ping -c 3 <внешний_домен>",
                 "explanation": "Подтверждает работоспособность NAT и форвардинга."
@@ -1499,7 +1505,13 @@ const APP_DATA = {
                 "task": "Проверьте рекурсивную пересылку внешних запросов на forwarder 77.88.8.8 (пинг ya.ru)",
                 "correctAnswers": [
                         "ping -c 3 ya.ru",
-                        "ping -c 3 yandex.ru"
+                        "ping -c 3 77.88.8.8",
+                        "ping -c 3 yandex.ru",
+                        "ping ya.ru",
+                        "ping 77.88.8.8",
+                        "ping yandex.ru",
+                        "ping -c 4 ya.ru",
+                        "ping -c 2 ya.ru"
                 ],
                 "hint1": "Локальный DNS должен запросить внешний адрес у Яндекса и вернуть клиенту.",
                 "hint2": "Синтаксис: ping -c 3 <внешнее_имя>",
