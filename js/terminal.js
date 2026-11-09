@@ -133,6 +133,8 @@ class TerminalTrainer {
 
         // Горячие клавиши F1, F2, F3 и переход к следующему заданию
         window.addEventListener('keydown', (e) => {
+            // Если открыт текстовый редактор, не перехватывать клавиши
+            if (window.terminalEditor && window.terminalEditor.isOpen) return;
             const secTerm = document.getElementById('sec-terminal');
             if (!secTerm || !secTerm.classList.contains('active')) return;
 
@@ -171,6 +173,29 @@ class TerminalTrainer {
                 e.preventDefault();
                 const key = chip.getAttribute('data-key');
                 const action = chip.getAttribute('data-action');
+
+                // Если открыт текстовый редактор (nano, vim, mcedit) — направляем ввод в него!
+                if (window.terminalEditor && window.terminalEditor.isOpen && window.terminalEditor.textarea) {
+                    const ed = window.terminalEditor;
+                    if (ed.editorType === 'vim' && ed.vimMode !== 'insert') {
+                        ed.setVimMode('insert');
+                    }
+                    if (action === 'tab') {
+                        ed.insertTextAtCursor('    ');
+                    } else if (action === 'clear') {
+                        const ta = ed.textarea;
+                        const start = ta.selectionStart || 0;
+                        if (start > 0) {
+                            ta.value = ta.value.substring(0, start - 1) + ta.value.substring(start);
+                            ta.selectionStart = ta.selectionEnd = start - 1;
+                            ta.dispatchEvent(new Event('input'));
+                        }
+                    } else if (key) {
+                        ed.insertTextAtCursor(key);
+                    }
+                    ed.textarea.focus();
+                    return;
+                }
                 if (action === 'tab') {
                     if (window.altTabCompleter) {
                         window.altTabCompleter.handleTab(this.termInput, this.termOutput, this.termPrompt?.textContent || 'root@isp:~# ');
@@ -190,8 +215,10 @@ class TerminalTrainer {
             });
         });
 
-        // Клик по окну терминала переносит фокус в инпут
-        document.querySelector('#sec-terminal .terminal-window')?.addEventListener('click', () => {
+        // Клик по окну терминала переносит фокус в инпут (если редактор закрыт)
+        document.querySelector('#sec-terminal .terminal-window')?.addEventListener('click', (e) => {
+            if (window.terminalEditor && window.terminalEditor.isOpen) return;
+            if (e && e.target && e.target.closest('.terminal-text-editor')) return;
             this.termInput.focus();
         });
     }

@@ -3,6 +3,37 @@
 // Позволяет открывать, редактировать и сохранять документы прямо внутри терминала стенда!
 
 class TerminalTextEditor {
+    getTemplateForFile(filepath) {
+        const fp = filepath || '';
+        if (fp.includes('/gre1/options')) {
+            const curTask = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+            const host = curTask?.host || 'hq-rtr';
+            if (host === 'br-rtr') {
+                return 'TYPE=iptun\nTUNTYPE=gre\nTUNLOCAL=172.16.2.2\nTUNREMOTE=172.16.1.2\nTUNTTL=255\nTUNMTU=1476\n';
+            }
+            return 'TYPE=iptun\nTUNTYPE=gre\nTUNLOCAL=172.16.1.2\nTUNREMOTE=172.16.2.2\nTUNTTL=255\nTUNMTU=1476\n';
+        }
+        if (fp.includes('/ipv4address')) {
+            const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+            if (cur && cur.correctAnswers) {
+                for (const a of cur.correctAnswers) {
+                    const m = a.match(/echo\s+['"]?([^'">]+)['"]?\s*>/);
+                    if (m) return m[1].trim() + '\n';
+                }
+            }
+        }
+        if (fp.includes('/hostname')) {
+            const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+            if (cur && cur.correctAnswers) {
+                for (const a of cur.correctAnswers) {
+                    const m = a.match(/set-hostname\s+([^\s;]+)/);
+                    if (m) return m[1].trim() + '\n';
+                }
+            }
+        }
+        return null;
+    }
+
     constructor() {
         this.isOpen = false;
         this.editorType = 'nano'; // 'nano' | 'mcedit' | 'vim' | 'vi'
@@ -82,12 +113,24 @@ class TerminalTextEditor {
 
         if (this.textarea) {
             this.textarea.value = this.initialContent;
+
+            // Защита от потери фокуса: клики внутри редактора не должны улетать в терминал
+            wrapper.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            this.textarea.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this.editorType === 'vim' && this.vimMode !== 'insert') {
+                    this.setVimMode('insert');
+                }
+            });
+
             // Фокус в редактор
             setTimeout(() => {
                 this.textarea.focus();
                 if (this.editorType === 'vim') {
-                    // В vim ставим курсор в начало и блокируем прямой ввод пока не нажат 'i'
-                    this.textarea.readOnly = true;
+                    // В vim сразу включаем режим вставки, чтобы можно было писать без блокировок!
+                    this.setVimMode('insert');
                 }
             }, 50);
         }
@@ -106,6 +149,7 @@ class TerminalTextEditor {
                     <button id="editor-btn-save" class="btn btn-xs btn-success font-bold" title="Сохранить файл (Ctrl+O)">
                         💾 Записать (Ctrl+O)
                     </button>
+                    <button id="editor-btn-template" class="btn btn-xs btn-warning font-bold" title="Вставить готовый шаблон для этого файла">⚡ Шаблон</button>
                     <button id="editor-btn-paste" class="btn btn-xs btn-outline text-cyan" title="Вставить из буфера">
                         📋 Вставить
                     </button>
@@ -145,6 +189,7 @@ class TerminalTextEditor {
                     <button id="editor-btn-save" class="btn btn-xs btn-success font-bold" title="F2 Сохранить">
                         💾 F2 Сохранить
                     </button>
+                    <button id="editor-btn-template" class="btn btn-xs btn-warning font-bold" title="Вставить готовый шаблон для этого файла">⚡ Шаблон</button>
                     <button id="editor-btn-paste" class="btn btn-xs btn-outline text-cyan">
                         📋 Вставить
                     </button>
@@ -236,6 +281,25 @@ class TerminalTextEditor {
         btnExit?.addEventListener('click', () => this.exit());
         btnPaste?.addEventListener('click', () => this.pasteClipboard());
 
+        const btnTemplate = this.element.querySelector('#editor-btn-template');
+        btnTemplate?.addEventListener('click', () => {
+            const tpl = this.getTemplateForFile(this.filepath);
+            if (tpl) {
+                this.textarea.value = tpl;
+                this.currentContent = tpl;
+                this.isModified = true;
+                this.updateModifiedIndicator();
+                this.textarea.focus();
+                if (this.editorType === 'vim') this.setVimMode('insert');
+                if (this.statusEl) {
+                    this.statusEl.innerHTML = `<span class="text-yellow font-bold">⚡ Шаблон вставлен! Проверьте и нажмите «Сохранить».</span>`;
+                }
+            } else {
+                alert('Для данного файла нет готового шаблона. Введите текст вручную.');
+            }
+        });
+
+
         if (btnVimToggle) {
             btnVimToggle.addEventListener('click', () => {
                 if (this.vimMode === 'normal') {
@@ -264,6 +328,13 @@ class TerminalTextEditor {
     }
 
     handleKeyDown(e) {
+        // Перехват Tab: вставляем 4 пробела, не теряя фокус
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            this.insertTextAtCursor('    ');
+            return;
+        }
+
         // NANO
         if (this.editorType === 'nano') {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') {
