@@ -1401,7 +1401,9 @@ const APP_DATA = {
                 "task": "Укажите loopback 127.0.0.1 в resolv.conf интерфейса enp0s3.100 на сервере",
                 "correctAnswers": [
                         "echo 'nameserver 127.0.0.1' > /etc/net/ifaces/enp0s3.100/resolv.conf",
-                        "echo nameserver 127.0.0.1 > /etc/net/ifaces/enp0s3.100/resolv.conf"
+                        "echo nameserver 127.0.0.1 > /etc/net/ifaces/enp0s3.100/resolv.conf",
+			"echo 'nameserver 127.0.0.1' > /etc/net/ifaces/enp7s1.100/resolv.conf",
+			"echo nameserver 127.0.0.1 > /etc/net/ifaces/enp7s1.100/resolv.conf"
                 ],
                 "hint1": "Чтобы сервер использовал собственный DNS-демон для разрешения имен.",
                 "hint2": "Синтаксис: echo 'nameserver <IP_loopback>' > .../resolv.conf",

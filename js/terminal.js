@@ -622,7 +622,15 @@ class TerminalTrainer {
             if (echoMatch) {
                 const expectedVal = echoMatch[1].trim();
                 const expectedFile = this.resolvePath(echoMatch[2].trim());
-                if (normFp === expectedFile && cleanContent.includes(expectedVal)) {
+
+                // Нормализация для сравнения (прощаем знак = вместо пробела, например nameserver=127.0.0.1)
+                const normContent = cleanContent.replace(/\s*=\s*/g, ' ').replace(/\s+/g, ' ');
+                const normExpected = expectedVal.replace(/\s*=\s*/g, ' ').replace(/\s+/g, ' ');
+
+                if (normFp === expectedFile && (cleanContent.includes(expectedVal) || normContent.includes(normExpected))) {
+                    if (normFp.endsWith('resolv.conf') && cleanContent.includes('=')) {
+                        this.printOutput(`[ Подсказка: в файле resolv.conf по стандарту Linux используется пробел ("${this.escapeHtml(expectedVal)}"), а не знак "=". Зачтено! ]`, "text-yellow text-xs");
+                    }
                     return true;
                 }
             }

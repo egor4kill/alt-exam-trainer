@@ -3,8 +3,9 @@
 // Позволяет открывать, редактировать и сохранять документы прямо внутри терминала стенда!
 
 class TerminalTextEditor {
-    getTemplateForFile(filepath) {
+        getTemplateForFile(filepath) {
         const fp = filepath || '';
+        // 1. GRE options
         if (fp.includes('/gre1/options')) {
             const curTask = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
             const host = curTask?.host || 'hq-rtr';
@@ -13,21 +14,20 @@ class TerminalTextEditor {
             }
             return 'TYPE=iptun\nTUNTYPE=gre\nTUNLOCAL=172.16.1.2\nTUNREMOTE=172.16.2.2\nTUNTTL=255\nTUNMTU=1476\n';
         }
-        if (fp.includes('/ipv4address')) {
-            const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
-            if (cur && cur.correctAnswers) {
-                for (const a of cur.correctAnswers) {
-                    const m = a.match(/echo\s+['"]?([^'">]+)['"]?\s*>/);
-                    if (m) return m[1].trim() + '\n';
-                }
-            }
+        // 2. resolv.conf (DNS)
+        if (fp.includes('resolv.conf')) {
+            return 'nameserver 127.0.0.1\n';
         }
-        if (fp.includes('/hostname')) {
-            const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
-            if (cur && cur.correctAnswers) {
-                for (const a of cur.correctAnswers) {
-                    const m = a.match(/set-hostname\s+([^\s;]+)/);
-                    if (m) return m[1].trim() + '\n';
+        // 3. Авто-извлечение из текущего задания для любых других файлов
+        const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+        if (cur && cur.correctAnswers) {
+            for (const a of cur.correctAnswers) {
+                const m = a.match(/echo\s+['"]?([^'">]+)['"]?\s*>\s*([^\s;]+)/);
+                if (m) {
+                    const targetFile = m[2].trim();
+                    if (fp.endsWith(targetFile.split('/').pop())) {
+                        return m[1].trim() + '\n';
+                    }
                 }
             }
         }
