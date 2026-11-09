@@ -140,7 +140,7 @@ class ProgressSyncManager {
             <div class="sync-summary-card mb-3">
                 <div class="d-flex justify-between align-center flex-wrap gap-2 mb-2">
                     <span class="text-xs text-muted">📊 Текущий прогресс на этом устройстве:</span>
-                    <span class="badge badge-success">${summary.tasksCount} / 97 заданий выполнено</span>
+                    <span class="badge badge-success">${summary.tasksCount} / 101 заданий выполнено</span>
                 </div>
                 <div class="sync-stats-grid">
                     <div class="sync-stat-item">

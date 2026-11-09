@@ -27,6 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Быстрое копирование в буфер
     try { initCopyButtons(); } catch (e) { console.error('Error initCopyButtons:', e); }
+    // PWA и Полноэкранный режим noVNC Proxmox
+    try { initPWA(); } catch (e) { console.error('Error initPWA:', e); }
+    try { initNoVNCFullscreen(); } catch (e) { console.error('Error initNoVNCFullscreen:', e); }
+
 });
 
 function initTabs() {
@@ -412,3 +416,100 @@ window.initRefSubtabs = initRefSubtabs;
 window.initPlainCheatsSearch = initPlainCheatsSearch;
 
 
+
+
+// ============================================================
+// PWA (Progressive Web App) & Service Worker Controller
+// ============================================================
+function initPWA() {
+    // 1. Регистрация Service Worker для офлайн-работы и мгновенной загрузки
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').then((reg) => {
+                console.log('[PWA] Service Worker успешно зарегистрирован:', reg.scope);
+            }).catch((err) => {
+                console.warn('[PWA] Ошибка регистрации Service Worker:', err);
+            });
+        });
+    }
+
+    // 2. Обработка кнопки «Установить приложение»
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btn-pwa-install');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Предотвращаем стандартный мини-баннер браузера, показываем аккуратную кнопку
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btnInstall) {
+            btnInstall.style.display = 'inline-flex';
+        }
+    });
+
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstall.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // Подсказка для Safari (iOS) и браузеров, где beforeinstallprompt не поддерживается
+                alert('📲 Установка приложения на ваше устройство:\n\n• На телефоне (Android): меню ⋮ ➔ «Установить приложение» (или «На экран «Домой»»)\n• На iPhone/iPad (Safari): кнопка «Поделиться» ➔ «На экран «Домой»»\n• На компьютере (Chrome/Edge): иконка в адресной строке ➔ «Установить»');
+            }
+        });
+    }
+
+    // Скрываем кнопку установки, если приложение уже запущено как отдельное PWA-окно
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        if (btnInstall) btnInstall.style.display = 'none';
+    }
+}
+
+// ============================================================
+// Аутентичный режим Proxmox VE noVNC во весь экран (1-в-1 с экзаменом)
+// ============================================================
+function initNoVNCFullscreen() {
+    function setupFullscreenBtn(btnId, windowSelector) {
+        const btn = document.getElementById(btnId);
+        const win = document.querySelector(windowSelector);
+        if (!btn || !win) return;
+
+        function toggle() {
+            const isFull = win.classList.toggle('novnc-fullscreen-mode');
+            document.body.classList.toggle('novnc-fullscreen-active', isFull);
+            btn.innerHTML = isFull ? '✖ Выйти (Esc)' : '⛶ noVNC Fullscreen';
+            btn.classList.toggle('btn-danger', isFull);
+            btn.classList.toggle('btn-outline', !isFull);
+
+            if (isFull) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } else {
+                if (document.exitFullscreen && document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+
+            // Фокусировка на поле ввода терминала
+            setTimeout(() => {
+                const input = win.querySelector('.term-input');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        btn.addEventListener('click', toggle);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && win.classList.contains('novnc-fullscreen-mode')) {
+                toggle();
+            }
+        });
+    }
+
+    setupFullscreenBtn('btn-novnc-fullscreen', '#sec-terminal .terminal-window');
+    setupFullscreenBtn('btn-stand-novnc-fullscreen', '#stand-term-window');
+}

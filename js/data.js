@@ -857,6 +857,27 @@ const APP_DATA = {
                 "explanation": "Создает каталог настроек туннеля gre1."
         },
         {
+                "id": "cmd_6_1b",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Настройте параметры туннеля gre1 (TYPE=iptun, TUNTYPE=gre, TUNLOCAL=172.16.1.2, TUNREMOTE=172.16.2.2, TUNMTU=1476) в /etc/net/ifaces/gre1/options",
+                "correctAnswers": [
+                        "echo -e 'TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.1.2\\nTUNREMOTE=172.16.2.2\\nTUNTTL=255\\nTUNMTU=1476' > /etc/net/ifaces/gre1/options",
+                        "echo -e \"TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.1.2\\nTUNREMOTE=172.16.2.2\\nTUNTTL=255\\nTUNMTU=1476\" > /etc/net/ifaces/gre1/options",
+                        "nano /etc/net/ifaces/gre1/options",
+                        "mcedit /etc/net/ifaces/gre1/options",
+                        "vim /etc/net/ifaces/gre1/options",
+                        "cat << 'EOF' > /etc/net/ifaces/gre1/options",
+                        "cat << EOF > /etc/net/ifaces/gre1/options",
+                        "echo 'TYPE=iptun' > /etc/net/ifaces/gre1/options",
+                        "echo 'TUNREMOTE=172.16.2.2' >> /etc/net/ifaces/gre1/options"
+                ],
+                "hint1": "Параметры GRE в Альте: TYPE=iptun, TUNTYPE=gre, TUNLOCAL (свой IP 172.16.1.2), TUNREMOTE (удаленный IP 172.16.2.2), TUNMTU=1476.",
+                "hint2": "Используйте nano /etc/net/ifaces/gre1/options или: echo -e 'TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.1.2\\nTUNREMOTE=172.16.2.2\\nTUNTTL=255\\nTUNMTU=1476' > /etc/net/ifaces/gre1/options",
+                "explanation": "Задает тип туннеля, внешние точки подключения и MTU 1476 (1500 минус 24 байта заголовка GRE)."
+        },
+        {
                 "id": "cmd_6_2",
                 "topicId": 6,
                 "host": "hq-rtr",
@@ -882,6 +903,41 @@ const APP_DATA = {
                 "hint1": "Утилита подъема конкретного сетевого интерфейса в Альте.",
                 "hint2": "Синтаксис: ifup <имя_интерфейса>",
                 "explanation": "Поднимает виртуальный интерфейс gre1."
+        },
+        {
+                "id": "cmd_6_3b",
+                "topicId": 6,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "Перейдите на маршрутизатор филиала BR-RTR и создайте каталог интерфейса gre1 (/etc/net/ifaces/gre1)",
+                "correctAnswers": [
+                        "mkdir /etc/net/ifaces/gre1",
+                        "mkdir -p /etc/net/ifaces/gre1"
+                ],
+                "hint1": "На стороне филиала также требуется создать каталог интерфейса gre1.",
+                "hint2": "Синтаксис: mkdir -p /etc/net/ifaces/gre1",
+                "explanation": "Создает каталог конфигурации туннеля gre1 на BR-RTR."
+        },
+        {
+                "id": "cmd_6_3c",
+                "topicId": 6,
+                "host": "br-rtr",
+                "prompt": "root@br-rtr:~# ",
+                "task": "На BR-RTR настройте параметры туннеля gre1 (TUNLOCAL=172.16.2.2, TUNREMOTE=172.16.1.2, TUNMTU=1476) в /etc/net/ifaces/gre1/options",
+                "correctAnswers": [
+                        "echo -e 'TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.2.2\\nTUNREMOTE=172.16.1.2\\nTUNTTL=255\\nTUNMTU=1476' > /etc/net/ifaces/gre1/options",
+                        "echo -e \"TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.2.2\\nTUNREMOTE=172.16.1.2\\nTUNTTL=255\\nTUNMTU=1476\" > /etc/net/ifaces/gre1/options",
+                        "nano /etc/net/ifaces/gre1/options",
+                        "mcedit /etc/net/ifaces/gre1/options",
+                        "vim /etc/net/ifaces/gre1/options",
+                        "cat << 'EOF' > /etc/net/ifaces/gre1/options",
+                        "cat << EOF > /etc/net/ifaces/gre1/options",
+                        "echo 'TYPE=iptun' > /etc/net/ifaces/gre1/options",
+                        "echo 'TUNREMOTE=172.16.1.2' >> /etc/net/ifaces/gre1/options"
+                ],
+                "hint1": "На BR-RTR параметры зеркальные: TUNLOCAL=172.16.2.2, TUNREMOTE=172.16.1.2, TUNMTU=1476.",
+                "hint2": "Используйте nano /etc/net/ifaces/gre1/options или: echo -e 'TYPE=iptun\\nTUNTYPE=gre\\nTUNLOCAL=172.16.2.2\\nTUNREMOTE=172.16.1.2\\nTUNTTL=255\\nTUNMTU=1476' > /etc/net/ifaces/gre1/options",
+                "explanation": "Настраивает параметры туннеля со стороны филиала."
         },
         {
                 "id": "cmd_6_4",
@@ -922,6 +978,24 @@ const APP_DATA = {
                 "hint1": "Пинг удаленного туннельного адреса BR-RTR.",
                 "hint2": "Синтаксис: ping -c 3 <IP_туннеля_BR>",
                 "explanation": "Проверяет GRE-инкапсуляцию между маршрутизаторами."
+        },
+        {
+                "id": "cmd_6_6b",
+                "topicId": 6,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Проверьте MTU туннеля без фрагментации: отправьте с HQ-RTR 3 пакета размером 1448 байт с DF-битом на 10.0.0.2",
+                "correctAnswers": [
+                        "ping -c 3 -M do -s 1448 10.0.0.2",
+                        "ping -M do -s 1448 -c 3 10.0.0.2",
+                        "ping -c 3 -s 1448 -M do 10.0.0.2",
+                        "ping -s 1448 -M do -c 3 10.0.0.2",
+                        "ping -M do -c 3 -s 1448 10.0.0.2",
+                        "ping -s 1448 -c 3 -M do 10.0.0.2"
+                ],
+                "hint1": "Ключ -M do запрещает фрагментацию (DF=1), а -s 1448 задает размер данных ICMP (1448 + 28 = 1476 байт MTU).",
+                "hint2": "Синтаксис: ping -c 3 -M do -s 1448 10.0.0.2",
+                "explanation": "Подтверждает, что пакеты максимального размера 1476 проходят через GRE-туннель без фрагментации."
         },
         {
                 "id": "cmd_6_7",

@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Тренажёр стенда ОС «Альт» — Практики, Аварии и Экзамен Proxmox VE</title>
+        <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Альт Стенд">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -17,8 +25,11 @@
                     <h1>Альт Линукс & Proxmox — Тренажёр</h1>
                     <p>Домен: <code>au-team.irpo</code> | Таймзона: <code>Asia/Barnaul (+07)</code></p>
                 </div>
-                <button id="btn-open-sync-modal" class="btn btn-xs btn-outline text-cyan ml-2" title="Синхронизация прогресса между устройствами (телефон / ПК / GitHub)">
+                                <button id="btn-open-sync-modal" class="btn btn-xs btn-outline text-cyan ml-2" title="Синхронизация прогресса между устройствами (телефон / ПК / GitHub)">
                     📲 Синхронизация
+                </button>
+                <button id="btn-pwa-install" class="btn btn-xs btn-success ml-2" style="display:none;" title="Установить как приложение на телефон или компьютер">
+                    📥 Установить приложение
                 </button>
             </div>
 
@@ -67,7 +78,7 @@
                 <div class="topic-filter-box">
                     <label for="terminal-topic-filter" class="text-sm text-muted">Раздел:</label>
                     <select id="terminal-topic-filter" class="select-custom">
-                        <option value="all">Все практики подряд (2–8) [97 заданий]</option>
+                        <option value="all">Все практики подряд (2–8) [101 задание]</option>
                         <option value="2">Практика 2: FQDN и Часовой пояс [12]</option>
                         <option value="3">Практика 3: Сеть /etc/net (IP, маршруты) [16]</option>
                         <option value="4">Практика 4: VLAN 100 / 200 / 999 [10]</option>
@@ -81,7 +92,7 @@
                 <div class="stats-badges">
                     <div class="stat-item">
                         <span class="text-muted">Прогресс:</span>
-                        <b id="stat-term-completed" class="text-cyan">0 / 97</b>
+                        <b id="stat-term-completed" class="text-cyan">0 / 101</b>
                     </div>
                     <div class="stat-item">
                         <span class="text-muted">Серия:</span>
@@ -93,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- Навигатор заданий (список номеров 1..97 с галочками) -->
+            <!-- Навигатор заданий (список номеров 1..101 с галочками) -->
             <div class="task-nav-container">
                 <span class="task-nav-label">Задания:</span>
                 <div id="term-task-nav" class="task-nav-pills"></div>
@@ -104,7 +115,7 @@
                 <div class="task-info-left">
                     <div class="d-flex align-center gap-2 mb-1 flex-wrap">
                         <span id="task-badge" class="badge badge-topic">Тема 2</span>
-                        <span id="task-counter" class="text-muted text-sm">1 / 97</span>
+                        <span id="task-counter" class="text-muted text-sm">1 / 101</span>
                     </div>
                     <h2 id="task-title">Задание #1: ISP</h2>
                     <p id="task-desc" class="task-desc">Задайте полное доменное имя (FQDN) isp.au-team.irpo на виртуальной машине ISP</p>
@@ -170,7 +181,8 @@
                     <div class="win-title">
                         <span id="win-term-userhost">root@isp:~</span> (noVNC Console — Proxmox VE au-team.irpo)
                     </div>
-                    <div class="win-status">
+                    <div class="win-status d-flex align-center gap-2">
+                        <button id="btn-novnc-fullscreen" class="btn btn-xs btn-outline text-cyan" title="Развернуть консоль во весь экран (как на реальном экзамене)">⛶ noVNC Fullscreen</button>
                         <span class="status-dot"></span> Online
                     </div>
                 </div>
@@ -256,7 +268,10 @@
                         <div class="terminal-titlebar">
                             <div class="win-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
                             <div class="win-title" id="stand-win-title">HQ-RTR — noVNC Console</div>
-                            <div class="win-status"><span class="status-dot"></span> Online (KVM)</div>
+                            <div class="win-status d-flex align-center gap-2">
+                                <button id="btn-stand-novnc-fullscreen" class="btn btn-xs btn-outline text-cyan" title="Развернуть во весь экран">⛶ noVNC Fullscreen</button>
+                                <span class="status-dot"></span> Online (KVM)
+                            </div>
                         </div>
 
                         <div id="stand-term-output" class="terminal-body-content" style="min-height: 380px;"></div>
@@ -1267,6 +1282,7 @@
     <script src="js/data.js"></script>
     <script src="js/tab_completion.js"></script>
     <script src="js/stand_simulator.js"></script>
+    <script src="js/text_editor.js"></script>
     <script src="js/breakdown.js"></script>
     <script src="js/terminal.js"></script>
     <script src="js/troubleshoot.js"></script>

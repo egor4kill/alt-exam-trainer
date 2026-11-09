@@ -14,6 +14,7 @@ class TerminalTrainer {
         this.currentTaskAttempts = 0;
         this.hintsViewed = { h1: false, h2: false };
         this.autoAdvanceTimer = null;
+        this.cwd = '/root';
 
         // Восстанавливаем выбранную тему
         const savedTopic = localStorage.getItem('alt_term_current_topic') || 'all';
@@ -343,10 +344,10 @@ class TerminalTrainer {
         if (this.taskBadge) this.taskBadge.textContent = topic ? topic.badge : `Тема ${task.topicId}`;
         if (this.taskCounter) this.taskCounter.textContent = `${this.currentTaskIndex + 1} / ${this.filteredTasks.length}`;
 
-        const winHost = document.getElementById('win-term-userhost');
-        if (winHost) winHost.textContent = `${task.host === 'hq-cli' ? 'user' : 'root'}@${task.host}:~`;
-
-        this.termPrompt.textContent = task.prompt;
+        const isRoot = task.host !== 'hq-cli';
+        this.homeDir = isRoot ? '/root' : '/home/user';
+        this.cwd = this.homeDir;
+        this.updatePrompt(task);
 
         this.hintBox.classList.add('hidden');
         this.hintBox.innerHTML = '';
@@ -372,6 +373,324 @@ class TerminalTrainer {
         this.renderTaskNavigator();
     }
 
+    updatePrompt(task) {
+        const curTask = task || this.filteredTasks[this.currentTaskIndex];
+        if (!curTask) return;
+        const promptStr = this.getDisplayPrompt(curTask);
+        if (this.termPrompt) this.termPrompt.textContent = promptStr;
+
+        const isRoot = curTask.host !== 'hq-cli';
+        const user = isRoot ? 'root' : 'user';
+        const homeDir = isRoot ? '/root' : '/home/user';
+        let pathDisplay = this.cwd || homeDir;
+        if (pathDisplay === homeDir) {
+            pathDisplay = '~';
+        } else if (pathDisplay.startsWith(homeDir + '/')) {
+            pathDisplay = '~' + pathDisplay.slice(homeDir.length);
+        }
+
+        const winHost = document.getElementById('win-term-userhost');
+        if (winHost) winHost.textContent = `${user}@${curTask.host}:${pathDisplay}`;
+    }
+
+    getDisplayPrompt(task) {
+        const isRoot = task.host !== 'hq-cli';
+        const user = isRoot ? 'root' : 'user';
+        const homeDir = isRoot ? '/root' : '/home/user';
+        const sign = isRoot ? '#' : '$';
+
+        let pathDisplay = this.cwd || homeDir;
+        if (pathDisplay === homeDir) {
+            pathDisplay = '~';
+        } else if (pathDisplay.startsWith(homeDir + '/')) {
+            pathDisplay = '~' + pathDisplay.slice(homeDir.length);
+        }
+
+        return `${user}@${task.host}:${pathDisplay}${sign} `;
+    }
+
+    resolvePath(rawPath) {
+        if (!rawPath) return this.cwd || '/root';
+        let p = rawPath.trim();
+        const curTask = this.filteredTasks[this.currentTaskIndex];
+        const isRoot = curTask ? (curTask.host !== 'hq-cli') : true;
+        const home = isRoot ? '/root' : '/home/user';
+
+        if (p === '~') return home;
+        if (p.startsWith('~/')) return home + '/' + p.slice(2);
+        if (!p.startsWith('/')) {
+            const base = (this.cwd && this.cwd !== '/') ? this.cwd : '';
+            p = base + '/' + p;
+        }
+
+        const parts = p.split('/').filter(Boolean);
+        const stack = [];
+        for (const part of parts) {
+            if (part === '.') continue;
+            if (part === '..') {
+                if (stack.length > 0) stack.pop();
+            } else {
+                stack.push(part);
+            }
+        }
+        return '/' + stack.join('/');
+    }
+
+    isValidDirectory(path, host) {
+        if (!path) return false;
+        const norm = path.replace(/\/+$/, '') || '/';
+        const baseDirs = [
+            '/', '/root', '/home', '/home/user', '/etc', '/etc/net', '/etc/net/ifaces', 
+            '/etc/net/ifaces/default', '/etc/frr', '/etc/openssh', '/var', '/var/log', '/tmp', '/bin', '/sbin'
+        ];
+        if (baseDirs.includes(norm)) return true;
+
+        const commonIfaces = ['enp7s1', 'enp7s2', 'enp7s3', 'enp0s3', 'enp0s3.100', 'enp0s3.200', 'enp7s2.100', 'enp7s2.200', 'enp7s2.999', 'gre1', 'default'];
+        if (commonIfaces.some(iface => norm === `/etc/net/ifaces/${iface}`)) return true;
+
+        if (window.standSimulator?.state[host]?.files) {
+            for (const f of Object.keys(window.standSimulator.state[host].files)) {
+                if (f.startsWith(norm + '/')) return true;
+            }
+        }
+        return false;
+    }
+
+    handleCdCommand(cmd, currentTask) {
+        const parts = cmd.split(' ').filter(Boolean);
+        const arg = parts[1] || '~';
+        const target = this.resolvePath(arg);
+
+        if (!this.isValidDirectory(target, currentTask.host)) {
+            this.printOutput(`bash: cd: ${this.escapeHtml(arg)}: Нет такого файла или каталога`, "text-danger");
+            return;
+        }
+
+        this.cwd = target;
+        this.updatePrompt(currentTask);
+    }
+
+    handleLsCommand(cmd, currentTask) {
+        const parts = cmd.split(' ').filter(Boolean);
+        let targetArg = parts.find(p => !p.startsWith('-') && p !== 'ls' && p !== 'dir');
+        let targetDir = targetArg ? this.resolvePath(targetArg) : this.cwd;
+        targetDir = targetDir.replace(/\/+$/, '') || '/';
+
+        if (!this.isValidDirectory(targetDir, currentTask.host)) {
+            this.printOutput(`ls: невозможно получить доступ к '${this.escapeHtml(targetArg)}': Нет такого файла или каталога`, "text-danger");
+            return;
+        }
+
+        const isLong = parts.some(p => p.includes('l'));
+        const isAll = parts.some(p => p.includes('a'));
+
+        const subdirs = new Set();
+        const files = new Set();
+
+        if (isAll) {
+            subdirs.add('.');
+            subdirs.add('..');
+        }
+
+        if (targetDir === '/etc/net/ifaces') {
+            ['default', 'enp0s3', 'enp7s1', 'enp7s2', 'enp7s3', 'gre1'].forEach(d => subdirs.add(d));
+            if (window.standSimulator?.state[currentTask.host]?.files) {
+                Object.keys(window.standSimulator.state[currentTask.host].files).forEach(f => {
+                    if (f.startsWith('/etc/net/ifaces/')) {
+                        const sub = f.replace('/etc/net/ifaces/', '').split('/')[0];
+                        if (sub) subdirs.add(sub);
+                    }
+                });
+            }
+        } else if (targetDir.startsWith('/etc/net/ifaces/')) {
+            ['ipv4address', 'ipv4route', 'options', 'resolv.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/etc/net') {
+            subdirs.add('ifaces');
+            files.add('sysctl.conf');
+        } else if (targetDir === '/etc/frr') {
+            ['daemons', 'frr.conf', 'vtysh.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/root') {
+            files.add('iptables_rules');
+        } else if (targetDir === '/etc') {
+            ['net', 'frr', 'openssh'].forEach(d => subdirs.add(d));
+            ['hostname', 'hosts', 'resolv.conf', 'dnsmasq.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/') {
+            ['bin', 'etc', 'home', 'root', 'sbin', 'tmp', 'var'].forEach(d => subdirs.add(d));
+        }
+
+        if (window.standSimulator?.state[currentTask.host]?.files) {
+            Object.keys(window.standSimulator.state[currentTask.host].files).forEach(f => {
+                if (f.startsWith(targetDir + '/')) {
+                    const rel = f.slice(targetDir.length + 1);
+                    if (!rel.includes('/')) {
+                        files.add(rel);
+                    } else {
+                        subdirs.add(rel.split('/')[0]);
+                    }
+                }
+            });
+        }
+
+        if (isLong) {
+            let lines = [`total ${subdirs.size + files.size}`];
+            subdirs.forEach(d => {
+                lines.push(`drwxr-xr-x 2 root root 4096 Ноя 09 07:00 <span class="text-cyan font-bold">${this.escapeHtml(d)}</span>`);
+            });
+            files.forEach(f => {
+                lines.push(`-rw-r--r-- 1 root root  512 Ноя 09 07:00 <span class="text-white">${this.escapeHtml(f)}</span>`);
+            });
+            this.printOutput(lines.join('<br>'), "console-box");
+        } else {
+            const renderedSubdirs = Array.from(subdirs).map(d => `<span class="text-cyan font-bold">${this.escapeHtml(d)}/</span>`);
+            const renderedFiles = Array.from(files).map(f => `<span class="text-white">${this.escapeHtml(f)}</span>`);
+            const allItems = [...renderedSubdirs, ...renderedFiles];
+            this.printOutput(allItems.join('&nbsp;&nbsp;&nbsp;&nbsp;'), "console-box");
+        }
+    }
+
+    handleEditorCommand(editorType, fileArg, currentTask) {
+        const resolvedPath = this.resolvePath(fileArg || 'untitled');
+        const initialContent = window.standSimulator?.state[currentTask.host]?.files[resolvedPath] || '';
+        const container = document.querySelector('.terminal-window') || this.termOutput.parentElement;
+
+        if (!window.terminalEditor) {
+            this.printOutput(`${editorType}: редактор недоступен`, "text-danger");
+            return;
+        }
+
+        window.terminalEditor.open({
+            container: container,
+            type: editorType,
+            filepath: resolvedPath,
+            displayPath: fileArg || resolvedPath,
+            initialContent: initialContent,
+            onSave: (fp, content) => {
+                if (window.standSimulator) {
+                    window.standSimulator.state[currentTask.host].files[fp] = content;
+                    window.standSimulator.applyEtcNetConfigurations(window.standSimulator.state[currentTask.host]);
+                    window.standSimulator.saveState();
+                }
+            },
+            onExit: (fp, content, wasSaved) => {
+                this.termInput.focus();
+                if (wasSaved) {
+                    this.printOutput(`[ Записано в файл ${this.escapeHtml(fp)} через ${editorType} ]`, "text-cyan text-xs");
+                    const solved = this.checkTaskCompletionByFile(currentTask, fp, content);
+                    if (solved) {
+                        this.handleSuccess(currentTask, `${editorType} ${fileArg || fp}`);
+                    }
+                }
+            }
+        });
+    }
+
+    checkTaskCompletionByFile(task, filepath, content) {
+        if (!task || !task.correctAnswers) return false;
+        const normFp = this.resolvePath(filepath);
+        const cleanContent = (content || '').trim();
+
+        for (const ans of task.correctAnswers) {
+            // 1. echo 'val' > file
+            const echoMatch = ans.match(/echo\s+['"]?([^'">]+)['"]?\s*>\s*([^\s;]+)/);
+            if (echoMatch) {
+                const expectedVal = echoMatch[1].trim();
+                const expectedFile = this.resolvePath(echoMatch[2].trim());
+                if (normFp === expectedFile && cleanContent.includes(expectedVal)) {
+                    return true;
+                }
+            }
+
+            // 2. set-hostname или /etc/hostname
+            if (ans.includes('set-hostname') && normFp === '/etc/hostname') {
+                const hostMatch = ans.match(/set-hostname\s+([^\s;]+)/);
+                if (hostMatch && cleanContent.includes(hostMatch[1].trim())) {
+                    if (window.standSimulator) {
+                        window.standSimulator.state[task.host].hostname = hostMatch[1].trim();
+                    }
+                    return true;
+                }
+            }
+
+            // 3. set-timezone или /etc/timezone
+            if (ans.includes('set-timezone') && normFp === '/etc/timezone') {
+                const tzMatch = ans.match(/set-timezone\s+([^\s;]+)/);
+                if (tzMatch && cleanContent.includes(tzMatch[1].trim())) {
+                    if (window.standSimulator) {
+                        window.standSimulator.state[task.host].timezone = tzMatch[1].trim();
+                    }
+                    return true;
+                }
+            }
+
+            
+            // 5. GRE options file (/etc/net/ifaces/gre1/options)
+            if (normFp.endsWith('/gre1/options')) {
+                const isHq = task.host === 'hq-rtr';
+                const isBr = task.host === 'br-rtr';
+                const expectedRemote = isHq ? '172.16.2.2' : (isBr ? '172.16.1.2' : null);
+                if (expectedRemote && cleanContent.includes(expectedRemote)) {
+                    if (window.standSimulator && window.standSimulator.state[task.host]) {
+                        const vm = window.standSimulator.state[task.host];
+                        if (!vm.ifaces['gre1']) vm.ifaces['gre1'] = { state: 'DOWN' };
+                        vm.ifaces['gre1'].remote = expectedRemote;
+                        vm.ifaces['gre1'].mtu = 1476;
+                        vm.ifaces['gre1'].state = 'UP';
+                    }
+                    return true;
+                }
+            }
+            // 4. sysctl forwarding
+            if ((normFp === '/etc/net/sysctl.conf' || normFp === '/etc/sysctl.conf') && ans.includes('ip_forward=1')) {
+                if (cleanContent.includes('ip_forward=1') || cleanContent.includes('ip_forward = 1')) {
+                    if (window.standSimulator) {
+                        window.standSimulator.state[task.host].ipForward = true;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    resolveCommandToCanonical(normCmd) {
+        // 1. echo 'val' > file
+        const echoMatch = normCmd.match(/^(echo\s+['"]?[^'">]+['"]?\s*>\s*)([^\s;]+)$/);
+        if (echoMatch) {
+            const prefix = echoMatch[1];
+            const file = echoMatch[2];
+            const absFile = this.resolvePath(file);
+            return this.normalizeCommand(`${prefix}${absFile}`);
+        }
+
+        // 2. echo 'val' | tee file
+        const teeMatch = normCmd.match(/^(echo\s+['"]?[^'">]+['"]?\s*)\|\s*tee\s+([^\s;]+)$/);
+        if (teeMatch) {
+            const prefix = teeMatch[1];
+            const file = teeMatch[2];
+            const absFile = this.resolvePath(file);
+            return this.normalizeCommand(`${prefix}> ${absFile}`);
+        }
+
+        // 3. cp [-r] src dst
+        const cpMatch = normCmd.match(/^cp(\s+-r)?\s+([^\s;]+)\s+([^\s;]+)$/);
+        if (cpMatch) {
+            const flag = cpMatch[1] || '';
+            const src = this.resolvePath(cpMatch[2]);
+            const dst = this.resolvePath(cpMatch[3]);
+            return this.normalizeCommand(`cp${flag} ${src} ${dst}`);
+        }
+
+        // 4. cat file
+        const catMatch = normCmd.match(/^cat\s+([^\s;]+)$/);
+        if (catMatch) {
+            const file = catMatch[1];
+            const absFile = this.resolvePath(file);
+            return this.normalizeCommand(`cat ${absFile}`);
+        }
+
+        return normCmd;
+    }
+
     normalizeCommand(cmd) {
         return cmd
             .trim()
@@ -392,10 +711,11 @@ class TerminalTrainer {
 
         const currentTask = this.filteredTasks[this.currentTaskIndex];
         const normUser = this.normalizeCommand(cmd);
+        const promptText = this.getDisplayPrompt(currentTask);
 
         const line = document.createElement('div');
         line.className = 'term-line';
-        line.innerHTML = `<span class="prompt">${currentTask.prompt}</span><span class="user-cmd">${this.escapeHtml(cmd)}</span>`;
+        line.innerHTML = `<span class="prompt">${this.escapeHtml(promptText)}</span><span class="user-cmd">${this.escapeHtml(cmd)}</span>`;
         this.termOutput.appendChild(line);
 
         if (normUser === 'clear') {
@@ -404,7 +724,7 @@ class TerminalTrainer {
             return;
         }
         if (normUser === 'help') {
-            this.printOutput("Доступные команды: clear (очистить), help (помощь). Вводите команду для настройки стенда.", "sys-msg");
+            this.printOutput("Доступные команды: clear, help, pwd, cd [каталог], ls, cat [файл], cp, nano [файл], mcedit [файл], vim [файл]. Вводите команду для настройки стенда.", "sys-msg");
             this.termInput.value = '';
             return;
         }
@@ -426,23 +746,55 @@ class TerminalTrainer {
             return;
         }
 
+        // Навигация по каталогам
+        if (normUser === 'pwd') {
+            this.printOutput(this.escapeHtml(this.cwd), "text-white");
+            this.termInput.value = '';
+            this.scrollToBottom();
+            return;
+        }
+        if (normUser === 'cd' || normUser.startsWith('cd ')) {
+            this.handleCdCommand(cmd, currentTask);
+            this.termInput.value = '';
+            this.scrollToBottom();
+            return;
+        }
+        if (normUser === 'ls' || normUser.startsWith('ls ') || normUser === 'dir') {
+            this.handleLsCommand(cmd, currentTask);
+            this.termInput.value = '';
+            this.scrollToBottom();
+            return;
+        }
+
+        // Запуск текстовых редакторов: nano, mcedit, vim, vi
+        const editorMatch = normUser.match(/^(nano|mcedit|vim|vi)(\s+.*)?$/i);
+        if (editorMatch) {
+            const edType = editorMatch[1].toLowerCase();
+            const edFile = (editorMatch[2] || '').trim();
+            this.handleEditorCommand(edType, edFile, currentTask);
+            this.termInput.value = '';
+            this.scrollToBottom();
+            return;
+        }
+
+        // Проверка: совпадает ли исходная команда или её канонический вид (с абсолютными путями)
+        const canonicalUser = this.resolveCommandToCanonical(normUser);
         const isCorrect = currentTask.correctAnswers.some(ans => {
             const normAns = this.normalizeCommand(ans);
-            return normUser === normAns;
+            return normUser === normAns || canonicalUser === normAns;
         });
 
         if (isCorrect) {
             this.handleSuccess(currentTask, cmd);
-            // Реальное сохранение состояния на узле стенда!
             if (window.standSimulator) {
-                window.standSimulator.executeSimulatedCommand(currentTask.host, cmd, true);
+                window.standSimulator.executeSimulatedCommand(currentTask.host, canonicalUser, true);
                 window.standSimulator.saveState();
             }
         } else {
             // Проверяем: не является ли это командой живой диагностики перед выполнением?
-            const isDiagnostic = /^(ip\b|cat\b|ping\b|hostname\b|timedatectl\b|sysctl\b|systemctl status\b|vtysh\b|dig\b|ssh\b|ls\b|head\b|tail\b)/i.test(normUser);
+            const isDiagnostic = /^(ip\b|cat\b|ping\b|hostname\b|timedatectl\b|sysctl\b|systemctl status\b|vtysh\b|dig\b|ssh\b|ls\b|head\b|tail\b|mkdir\b|touch\b)/i.test(normUser);
             if (isDiagnostic && window.standSimulator) {
-                const diagOut = window.standSimulator.executeSimulatedCommand(currentTask.host, cmd, false);
+                const diagOut = window.standSimulator.executeSimulatedCommand(currentTask.host, canonicalUser, false);
                 if (diagOut) {
                     const diagLine = document.createElement('div');
                     diagLine.className = 'term-line';

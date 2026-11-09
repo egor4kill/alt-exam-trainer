@@ -274,12 +274,98 @@ class StandSimulator {
         this.renderStateInspector();
     }
 
+    resolveVmPath(vm, rawPath) {
+        if (!rawPath) return vm.cwd || (vm.user === 'root' ? '/root' : '/home/user');
+        let p = rawPath.trim();
+        const home = vm.user === 'root' ? '/root' : '/home/user';
+        if (p === '~') return home;
+        if (p.startsWith('~/')) return home + '/' + p.slice(2);
+        if (!p.startsWith('/')) {
+            const base = (vm.cwd && vm.cwd !== '/') ? vm.cwd : '';
+            p = base + '/' + p;
+        }
+        const parts = p.split('/').filter(Boolean);
+        const stack = [];
+        for (const part of parts) {
+            if (part === '.') continue;
+            if (part === '..') {
+                if (stack.length > 0) stack.pop();
+            } else {
+                stack.push(part);
+            }
+        }
+        return '/' + stack.join('/');
+    }
+
+    renderLsOutput(vm, cmd) {
+        const parts = cmd.split(' ').filter(Boolean);
+        const targetArg = parts.find(p => !p.startsWith('-') && p !== 'ls' && p !== 'dir');
+        let targetDir = targetArg ? this.resolveVmPath(vm, targetArg) : (vm.cwd || (vm.user === 'root' ? '/root' : '/home/user'));
+        targetDir = targetDir.replace(/\/+$/, '') || '/';
+
+        const subdirs = new Set();
+        const files = new Set();
+
+        if (targetDir === '/etc/net/ifaces') {
+            ['default', 'enp0s3', 'enp7s1', 'enp7s2', 'enp7s3', 'gre1'].forEach(d => subdirs.add(d));
+            Object.keys(vm.files).forEach(f => {
+                if (f.startsWith('/etc/net/ifaces/')) {
+                    const sub = f.replace('/etc/net/ifaces/', '').split('/')[0];
+                    if (sub) subdirs.add(sub);
+                }
+            });
+        } else if (targetDir.startsWith('/etc/net/ifaces/')) {
+            ['ipv4address', 'ipv4route', 'options', 'resolv.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/etc/net') {
+            subdirs.add('ifaces');
+            files.add('sysctl.conf');
+        } else if (targetDir === '/etc/frr') {
+            ['daemons', 'frr.conf', 'vtysh.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/root') {
+            files.add('iptables_rules');
+        } else if (targetDir === '/etc') {
+            ['net', 'frr', 'openssh'].forEach(d => subdirs.add(d));
+            ['hostname', 'hosts', 'resolv.conf', 'dnsmasq.conf'].forEach(f => files.add(f));
+        } else if (targetDir === '/') {
+            ['bin', 'etc', 'home', 'root', 'sbin', 'tmp', 'var'].forEach(d => subdirs.add(d));
+        }
+
+        Object.keys(vm.files).forEach(f => {
+            if (f.startsWith(targetDir + '/')) {
+                const rel = f.slice(targetDir.length + 1);
+                if (!rel.includes('/')) files.add(rel);
+                else subdirs.add(rel.split('/')[0]);
+            }
+        });
+
+        const isLong = parts.some(p => p.includes('l'));
+        if (isLong) {
+            let lines = [`total ${subdirs.size + files.size}`];
+            subdirs.forEach(d => {
+                lines.push(`drwxr-xr-x 2 ${vm.user} ${vm.user} 4096 Ноя 09 07:00 <span class="text-cyan font-bold">${this.escapeHtml(d)}</span>`);
+            });
+            files.forEach(f => {
+                lines.push(`-rw-r--r-- 1 ${vm.user} ${vm.user}  512 Ноя 09 07:00 <span class="text-white">${this.escapeHtml(f)}</span>`);
+            });
+            return lines.join('<br>');
+        } else {
+            const renderedSubdirs = Array.from(subdirs).map(d => `<span class="text-cyan font-bold">${this.escapeHtml(d)}/</span>`);
+            const renderedFiles = Array.from(files).map(f => `<span class="text-white">${this.escapeHtml(f)}</span>`);
+            return [...renderedSubdirs, ...renderedFiles].join('&nbsp;&nbsp;&nbsp;&nbsp;');
+        }
+    }
+
     getPromptText(vmId) {
         const vm = this.state[vmId];
         const isRoot = vm.user === 'root';
         const sign = isRoot ? '#' : '$';
         const hostShort = vm.hostname === 'localhost' ? vm.hostname : vm.hostname.split('.')[0];
-        return `${vm.user}@${hostShort}:~${sign} `;
+        const home = isRoot ? '/root' : '/home/user';
+        const cwd = vm.cwd || home;
+        let pathDisplay = cwd;
+        if (cwd === home) pathDisplay = '~';
+        else if (cwd.startsWith(home + '/')) pathDisplay = '~' + cwd.slice(home.length);
+        return `${vm.user}@${hostShort}:${pathDisplay}${sign} `;
     }
 
     renderActiveVmConsole() {
@@ -382,6 +468,58 @@ class StandSimulator {
             return null;
         }
 
+        // 1.1. НАВИГАЦИЯ: PWD, CD, LS
+        if (norm === 'pwd') {
+            return vm.cwd || (vm.user === 'root' ? '/root' : '/home/user');
+        }
+
+        if (norm === 'cd' || norm.startsWith('cd ')) {
+            const target = norm === 'cd' ? '~' : norm.slice(3).trim();
+            const abs = this.resolveVmPath(vm, target);
+            vm.cwd = abs;
+            return null;
+        }
+
+        if (norm === 'ls' || norm.startsWith('ls ') || norm === 'dir') {
+            return this.renderLsOutput(vm, norm);
+        }
+
+        // 1.2. РЕДАКТОРЫ: NANO, MCEDIT, VIM, VI
+        const edMatch = norm.match(/^(nano|mcedit|vim|vi)(\s+.*)?$/i);
+        if (edMatch && !silent) {
+            const edType = edMatch[1].toLowerCase();
+            const rawFile = (edMatch[2] || '').trim();
+            const absFile = this.resolveVmPath(vm, rawFile || 'untitled');
+            const initial = vm.files[absFile] || '';
+            const container = document.getElementById('stand-term-window') || this.termOutput.parentElement;
+
+            if (window.terminalEditor) {
+                window.terminalEditor.open({
+                    container: container,
+                    type: edType,
+                    filepath: absFile,
+                    displayPath: rawFile || absFile,
+                    initialContent: initial,
+                    onSave: (fp, content) => {
+                        vm.files[fp] = content;
+                        this.applyEtcNetConfigurations(vm);
+                        this.saveState();
+                        this.renderStateInspector();
+                    },
+                    onExit: (fp, content, wasSaved) => {
+                        this.termInput.focus();
+                        if (wasSaved) {
+                            const line = document.createElement('div');
+                            line.className = 'term-line text-cyan text-xs';
+                            line.innerHTML = `[ Записано в файл ${this.escapeHtml(fp)} через ${edType} ]`;
+                            this.termOutput.appendChild(line);
+                        }
+                    }
+                });
+            }
+            return null;
+        }
+
         // 2. HOSTNAMECTL
         if (norm.startsWith('hostnamectl set-hostname')) {
             const match = norm.match(/set-hostname\s+([^\s;]+)/);
@@ -459,18 +597,19 @@ class StandSimulator {
         }
 
         // 6. ЗАПИСЬ ФАЙЛОВ (ECHO > / CP -R / CAT)
-        const echoMatch = norm.match(/echo\s+['"]?([^'">]+)['"]?\s*>\s*([^\s;]+)/);
+        const echoMatch = norm.match(/echo(?:\s+-[enE]+)?\s+['"]?([\s\S]*?)['"]?\s*>\s*([^\s;]+)$/);
         if (echoMatch) {
             const content = echoMatch[1];
-            const filepath = echoMatch[2];
+            const filepath = this.resolveVmPath(vm, echoMatch[2]);
+            if (norm.includes('echo -e')) content = content.replace(/\\n/g, '\n');
             vm.files[filepath] = content;
             return silent ? null : '';
         }
 
-        const appendMatch = norm.match(/echo\s+['"]?([^'">]+)['"]?\s*>>\s*([^\s;]+)/);
+        const appendMatch = norm.match(/echo(?:\s+-[enE]+)?\s+['"]?([\s\S]*?)['"]?\s*>>\s*([^\s;]+)$/);
         if (appendMatch) {
             const content = appendMatch[1];
-            const filepath = appendMatch[2];
+            const filepath = this.resolveVmPath(vm, appendMatch[2]);
             vm.files[filepath] = (vm.files[filepath] || '') + '\n' + content;
             return silent ? null : '';
         }
@@ -492,12 +631,27 @@ class StandSimulator {
         }
 
         if (norm.startsWith('cat ')) {
-            const filepath = norm.split(' ')[1];
+            const rawPath = norm.split(' ')[1];
+            const filepath = this.resolveVmPath(vm, rawPath);
             if (vm.files[filepath]) {
                 return `<pre class="console-box">${this.escapeHtml(vm.files[filepath])}</pre>`;
             } else {
-                return `<span class="text-danger">cat: ${this.escapeHtml(filepath)}: Нет такого файла или каталога</span>`;
+                return `<span class="text-danger">cat: ${this.escapeHtml(rawPath)}: Нет такого файла или каталога</span>`;
             }
+        }
+
+                // 6b. IFUP / IFDOWN ИНТЕРФЕЙСОВ
+        if (norm.startsWith('ifup ')) {
+            const iface = norm.split(' ')[1];
+            this.applyEtcNetConfigurations(vm);
+            if (!vm.ifaces[iface]) vm.ifaces[iface] = { state: 'UP' };
+            else vm.ifaces[iface].state = 'UP';
+            return silent ? null : `<span class="text-green">[OK] Интерфейс ${this.escapeHtml(iface)} успешно активирован (UP).</span>`;
+        }
+        if (norm.startsWith('ifdown ')) {
+            const iface = norm.split(' ')[1];
+            if (vm.ifaces[iface]) vm.ifaces[iface].state = 'DOWN';
+            return silent ? null : `<span class="text-cyan">[OK] Интерфейс ${this.escapeHtml(iface)} деактивирован (DOWN).</span>`;
         }
 
         // 7. SYSTEMCTL RESTAURT NETWORK (ПРИМЕНЕНИЕ НАСТРОЕК СЕТИ)
@@ -662,8 +816,57 @@ class StandSimulator {
     }
 
     simulatePing(vm, cmd) {
-        const target = cmd.split(' ').filter(w => !w.startsWith('-') && w !== 'ping')[0];
-        if (!target) return 'ping: missing host operand';
+        const tokens = cmd.split(/\s+/).filter(Boolean);
+        let target = null;
+        for (let i = 1; i < tokens.length; i++) {
+            const tok = tokens[i];
+            if (tok.startsWith('-')) {
+                if (['-c', '-s', '-M', '-i', '-W', '-t'].includes(tok) && i + 1 < tokens.length) {
+                    i++;
+                }
+                continue;
+            }
+            target = tok;
+            break;
+        }
+        if (!target) target = tokens[tokens.length - 1];
+        if (!target || target === 'ping') return 'ping: missing host operand';
+
+        // GRE tunnel endpoints: 10.0.0.1 and 10.0.0.2
+        if (target === '10.0.0.2' || target === '10.0.0.1') {
+            const hqGre = this.state['hq-rtr'].ifaces['gre1']?.state === 'UP';
+            const brGre = this.state['br-rtr'].ifaces['gre1']?.state === 'UP';
+            const hasDf = cmd.includes('-M do') || cmd.includes('-M probe');
+            const sizeMatch = cmd.match(/-s\s+(\d+)/);
+            const packetSize = sizeMatch ? parseInt(sizeMatch[1], 10) : 56;
+
+            if (hqGre && brGre) {
+                if (hasDf && packetSize > 1448) {
+                    return `
+                        PING ${target} (${target}) ${packetSize}(${packetSize + 28}) bytes of data.<br>
+                        ping: local error: message too long, mtu=1476<br>
+                        <span class="text-yellow">💡 Ошибка фрагментации: размер пакета (${packetSize + 28} байт) превышает MTU туннеля gre1 (1476). С учетом 28 байт IP+ICMP максимальный полезный размер (-s) равен 1448 байт!</span>
+                    `;
+                }
+                const totalBytes = packetSize + 28;
+                return `
+                    PING ${target} (${target}) ${packetSize}(${totalBytes}) bytes of data.<br>
+                    ${packetSize + 8} bytes from ${target}: icmp_seq=1 ttl=64 time=1.14 ms<br>
+                    ${packetSize + 8} bytes from ${target}: icmp_seq=2 ttl=64 time=1.09 ms<br>
+                    ${packetSize + 8} bytes from ${target}: icmp_seq=3 ttl=64 time=1.12 ms<br>
+                    --- ${target} ping statistics ---<br>
+                    3 packets transmitted, 3 received, <b class="text-green">0% packet loss</b>, time 2003ms<br>
+                    <span class="text-green">✔ Связность по GRE-туннелю gre1 подтверждена${hasDf ? ' (MTU 1476 проверен без фрагментации, DF=1)' : ''}!</span>
+                `;
+            } else {
+                return `
+                    PING ${target} (${target}) ${packetSize}(${packetSize + 28}) bytes of data.<br>
+                    --- ${target} ping statistics ---<br>
+                    3 packets transmitted, 0 received, <b class="text-danger">100% packet loss</b><br>
+                    <span class="text-yellow">💡 GRE-туннель gre1 не поднят. Проверьте ifup gre1 и параметры /etc/net/ifaces/gre1/options на обоих маршрутизаторах (TUNREMOTE, TUNMTU=1476).</span>
+                `;
+            }
+        }
 
         // 1. Пинг шлюза ISP 172.16.1.1
         if (target === '172.16.1.1') {
