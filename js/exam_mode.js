@@ -78,6 +78,31 @@ class ExamManager {
                 this.finishExam();
             }
         });
+
+        // Мобильные быстрые клавиши-чипы в экзамене
+        document.querySelectorAll('#sec-exam .key-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = chip.getAttribute('data-key');
+                const action = chip.getAttribute('data-action');
+                if (action === 'tab') {
+                    if (window.altTabCompleter && this.termInput) {
+                        window.altTabCompleter.triggerTab(this.termInput);
+                    }
+                } else if (action === 'clear') {
+                    if (this.termInput) {
+                        this.termInput.value = '';
+                        this.termInput.focus();
+                    }
+                } else if (key && this.termInput) {
+                    const start = this.termInput.selectionStart || 0;
+                    const end = this.termInput.selectionEnd || 0;
+                    this.termInput.value = this.termInput.value.substring(0, start) + key + this.termInput.value.substring(end);
+                    this.termInput.selectionStart = this.termInput.selectionEnd = start + key.length;
+                    this.termInput.focus();
+                }
+            });
+        });
     }
 
         generateExamPool() {
