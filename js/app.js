@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { window.terminalTrainer = new TerminalTrainer(); } catch (e) { console.error('Error init TerminalTrainer:', e); }
     try { window.standSimulator = new StandSimulator(); } catch (e) { console.error('Error init StandSimulator:', e); }
     try { window.troubleshootManager = new TroubleshootManager(); } catch (e) { console.error('Error init TroubleshootManager:', e); }
+    try { window.drillTrainer = new DrillTrainer(); } catch (e) { console.error('Error init DrillTrainer:', e); }
     try { window.examManager = new ExamManager(); } catch (e) { console.error('Error init ExamManager:', e); }
     try { window.teacherTrainer = new TeacherExamTrainer(); } catch (e) { console.error('Error init TeacherExamTrainer:', e); }
     try { window.topologyManager = new TopologyManager(); } catch (e) { console.error('Error init TopologyManager:', e); }
@@ -66,6 +67,8 @@ function initTabs() {
                 document.getElementById('teacher-term-input')?.focus();
             } else if (targetSection === 'sec-troubleshoot') {
                 document.getElementById('incident-term-input')?.focus();
+            } else if (targetSection === 'sec-drill') {
+                document.getElementById('drill-term-input')?.focus();
             } else if (targetSection === 'sec-exam') {
                 if (window.examManager && window.examManager.isExamActive) {
                     document.getElementById('exam-term-input')?.focus();

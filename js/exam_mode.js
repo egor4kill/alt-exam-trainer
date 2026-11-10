@@ -8,7 +8,7 @@
 
 class ExamManager {
     constructor() {
-        this.examDurationSeconds = 15 * 60; // 15 минут
+        this.examDurationSeconds = 45 * 60; // 45 минут по умолчанию
         this.timeRemaining = this.examDurationSeconds;
         this.timerInterval = null;
         this.isExamActive = false;
@@ -26,6 +26,8 @@ class ExamManager {
         this.timerDisplay = document.getElementById('exam-timer-display');
         this.btnStartExam = document.getElementById('exam-btn-start');
         this.topicSelect = document.getElementById('exam-topic-select');
+        this.durationSelect = document.getElementById('exam-duration-select');
+        this.ruleDurationText = document.getElementById('exam-rule-duration-text');
         this.btnRestartExam = document.getElementById('exam-btn-restart');
         this.examIntroBox = document.getElementById('exam-intro-box');
         this.examActiveContainer = document.getElementById('exam-active-container');
@@ -47,6 +49,17 @@ class ExamManager {
     bindEvents() {
         this.btnStartExam?.addEventListener('click', () => this.startNewExam());
         this.btnRestartExam?.addEventListener('click', () => this.startNewExam());
+
+        this.durationSelect?.addEventListener('change', () => {
+            const mins = parseInt(this.durationSelect.value, 10) || 45;
+            this.examDurationSeconds = mins * 60;
+            if (this.btnStartExam) {
+                this.btnStartExam.textContent = `▶ Начать экзамен (${mins}:00)`;
+            }
+            if (this.ruleDurationText) {
+                this.ruleDurationText.textContent = `${mins} минут`;
+            }
+        });
 
         // Подключение автодополнения Tab в строгом режиме
         if (window.altTabCompleter) {
@@ -111,30 +124,242 @@ class ExamManager {
         const selectedTeacher = [];
 
         if (selectedTopic === 'all') {
-            // 1. Выбираем 5 практических задач из разных тем
-            const availableTopics = [2, 3, 4, 5, 6, 7, 8];
-            const shuffledTopics = [...availableTopics].sort(() => 0.5 - Math.random());
-
-            for (let i = 0; i < 5; i++) {
-                const topicId = shuffledTopics[i];
-                const topicTasks = APP_DATA.commandTasks.filter(t => t.topicId === topicId);
-                const randomTask = topicTasks[Math.floor(Math.random() * topicTasks.length)];
-                if (randomTask) {
-                    selectedPractical.push(Object.assign({}, randomTask, {
-                        type: 'practical',
-                        examTypeLabel: 'Практическая настройка'
-                    }));
+            // Реалистичная цепочка из 14 билетов: Темы 2–8 подряд (Настройка + Проверка работоспособности)
+            return [
+                {
+                    id: 'exam_all_1',
+                    topicId: 2,
+                    host: 'HQ-SRV',
+                    prompt: 'root@hq-srv:~# ',
+                    task: 'Установите часовой пояс Asia/Yekaterinburg на сервере HQ-SRV',
+                    correctAnswers: [
+                        'timedatectl set-timezone Asia/Yekaterinburg',
+                        "timedatectl set-timezone 'Asia/Yekaterinburg'",
+                        'timedatectl set-timezone "Asia/Yekaterinburg"'
+                    ],
+                    cmdRegex: '^timedatectl\\s+set-timezone\\s+[\'"]?Asia/Yekaterinburg[\'"]?$',
+                    expectedCmd: 'timedatectl set-timezone Asia/Yekaterinburg',
+                    explanation: 'Команда timedatectl set-timezone переключает системную зону в systemd без перезагрузки узла.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 2: Базовая настройка'
+                },
+                {
+                    id: 'exam_all_2',
+                    topicId: 2,
+                    host: 'HQ-SRV',
+                    prompt: 'root@hq-srv:~# ',
+                    task: 'Проверьте статус службы времени и текущий часовой пояс',
+                    correctAnswers: [
+                        'timedatectl status',
+                        'timedatectl'
+                    ],
+                    cmdRegex: '^timedatectl(\\s+status)?$',
+                    expectedCmd: 'timedatectl status',
+                    explanation: 'timedatectl (status) отображает текущую временную зону (+05:00) и синхронизацию NTP.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 2: Проверка работы'
+                },
+                {
+                    id: 'exam_all_3',
+                    topicId: 3,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Пропишите IP-адрес 172.16.1.1/24 в ipv4address внешнего интерфейса enp7s1',
+                    correctAnswers: [
+                        "echo '172.16.1.1/24' > /etc/net/ifaces/enp7s1/ipv4address",
+                        'echo "172.16.1.1/24" > /etc/net/ifaces/enp7s1/ipv4address'
+                    ],
+                    cmdRegex: '^echo\\s+[\'"]?172\\.16\\.1\\.1/24[\'"]?\\s+>\\s+/etc/net/ifaces/enp7s1/ipv4address$',
+                    expectedCmd: "echo '172.16.1.1/24' > /etc/net/ifaces/enp7s1/ipv4address",
+                    explanation: 'В /etc/net каждый сетевой параметр лежит в отдельном файле; ipv4address содержит IP с CIDR-маской.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 3: Сетевой стек /etc/net'
+                },
+                {
+                    id: 'exam_all_4',
+                    topicId: 3,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Выведите краткий цветной список сетевых интерфейсов и их IP-адресов',
+                    correctAnswers: [
+                        'ip -br -c a',
+                        'ip -br -c addr',
+                        'ip -br a',
+                        'ip -br addr',
+                        'ip -c -br a',
+                        'ip a'
+                    ],
+                    cmdRegex: '^ip(\\s+(-br|-c|-br\\s+-c|-c\\s+-br))?\\s+(a|addr|address)$',
+                    expectedCmd: 'ip -br -c a',
+                    explanation: 'ip -br -c a (ip --brief --color address) в компактном виде показывает статус UP/DOWN и назначенные IP.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 3: Проверка сети'
+                },
+                {
+                    id: 'exam_all_5',
+                    topicId: 4,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Создайте каталог для тегированного интерфейса VLAN 100 на физическом порту enp7s2',
+                    correctAnswers: [
+                        'mkdir -p /etc/net/ifaces/enp7s2.100',
+                        'mkdir /etc/net/ifaces/enp7s2.100'
+                    ],
+                    cmdRegex: '^mkdir(\\s+-p)?\\s+/etc/net/ifaces/enp7s2\\.100/?$',
+                    expectedCmd: 'mkdir -p /etc/net/ifaces/enp7s2.100',
+                    explanation: 'В ОС «Альт» VLAN-сабинтерфейс создается как каталог с точкой: <физ_интерфейс>.<vlan_id>.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 4: VLAN 802.1Q'
+                },
+                {
+                    id: 'exam_all_6',
+                    topicId: 4,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Покажите содержимое файла options сабинтерфейса enp7s2.100 (TYPE=vlan, HOST=enp7s2)',
+                    correctAnswers: [
+                        'cat /etc/net/ifaces/enp7s2.100/options'
+                    ],
+                    cmdRegex: '^cat\\s+/etc/net/ifaces/enp7s2\\.100/options$',
+                    expectedCmd: 'cat /etc/net/ifaces/enp7s2.100/options',
+                    explanation: 'Параметры TYPE=vlan и HOST=enp7s2 указывают подсистеме /etc/net, что это тегированный сабинтерфейс.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 4: Проверка VLAN'
+                },
+                {
+                    id: 'exam_all_7',
+                    topicId: 5,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Включите постоянный форвардинг пакетов IPv4 (net.ipv4.ip_forward = 1) и примените sysctl',
+                    correctAnswers: [
+                        "echo 'net.ipv4.ip_forward = 1' > /etc/net/sysctl.conf && sysctl -p /etc/net/sysctl.conf",
+                        "echo 'net.ipv4.ip_forward = 1' > /etc/net/sysctl.conf; sysctl -p /etc/net/sysctl.conf",
+                        'sysctl -p /etc/net/sysctl.conf',
+                        "echo 'net.ipv4.ip_forward = 1' > /etc/net/sysctl.conf"
+                    ],
+                    cmdRegex: '^(echo\\s+[\'"]?net\\.ipv4\\.ip_forward\\s*=\\s*1[\'"]?\\s+>\\s+/etc/net/sysctl\\.conf(\\s*(&&|;)\\s*sysctl\\s+-p(\\s+/etc/net/sysctl\\.conf)?)?|sysctl\\s+-p(\\s+/etc/net/sysctl\\.conf)?)$',
+                    expectedCmd: "echo 'net.ipv4.ip_forward = 1' > /etc/net/sysctl.conf && sysctl -p /etc/net/sysctl.conf",
+                    explanation: 'net.ipv4.ip_forward = 1 в sysctl.conf включает маршрутизацию пакетов между интерфейсами на уровне ядра.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 5: Маршрутизация'
+                },
+                {
+                    id: 'exam_all_8',
+                    topicId: 5,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Добавьте правило NAT MASQUERADE для исходящих пакетов через внешний интерфейс enp7s1',
+                    correctAnswers: [
+                        'iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE'
+                    ],
+                    cmdRegex: '^iptables\\s+-t\\s+nat\\s+-A\\s+POSTROUTING\\s+-o\\s+enp7s1\\s+-j\\s+MASQUERADE$',
+                    expectedCmd: 'iptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE',
+                    explanation: 'POSTROUTING подменяет серые локальные IP клиентов на внешний IP роутера enp7s1 для доступа в интернет.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 5: NAT & iptables'
+                },
+                {
+                    id: 'exam_all_9',
+                    topicId: 6,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Задайте MTU 1476 в файле mtu интерфейса tun0 для предотвращения фрагментации GRE',
+                    correctAnswers: [
+                        "echo '1476' > /etc/net/ifaces/tun0/mtu",
+                        'echo "1476" > /etc/net/ifaces/tun0/mtu',
+                        'echo 1476 > /etc/net/ifaces/tun0/mtu'
+                    ],
+                    cmdRegex: '^echo\\s+[\'"]?1476[\'"]?\\s+>\\s+/etc/net/ifaces/tun0/mtu$',
+                    expectedCmd: "echo '1476' > /etc/net/ifaces/tun0/mtu",
+                    explanation: 'Стандартный Ethernet MTU 1500 минус 24 байта заголовка GRE/IP = 1476 байт.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 6: GRE-туннель'
+                },
+                {
+                    id: 'exam_all_10',
+                    topicId: 6,
+                    host: 'HQ-RTR',
+                    prompt: 'root@hq-rtr:~# ',
+                    task: 'Проверьте статус OSPF-соседства с BR-RTR через консоль vtysh',
+                    correctAnswers: [
+                        "vtysh -c 'show ip ospf neighbor'",
+                        'vtysh -c "show ip ospf neighbor"',
+                        "vtysh -c 'sh ip ospf nei'"
+                    ],
+                    cmdRegex: '^vtysh\\s+-c\\s+[\'"]sh(ow)?\\s+ip\\s+ospf\\s+nei(ghbor)?[\'"]$',
+                    expectedCmd: "vtysh -c 'show ip ospf neighbor'",
+                    explanation: 'Статус Full в vtysh подтверждает, что OSPF-роутеры успешно синхронизировали базы топологии (LSA).',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 6: Проверка OSPF'
+                },
+                {
+                    id: 'exam_all_11',
+                    topicId: 7,
+                    host: 'HQ-SRV',
+                    prompt: 'root@hq-srv:~# ',
+                    task: 'Добавьте пул адресов dhcp-range=192.168.1.10,192.168.1.100,24h в конец /etc/dnsmasq.conf',
+                    correctAnswers: [
+                        "echo 'dhcp-range=192.168.1.10,192.168.1.100,24h' >> /etc/dnsmasq.conf",
+                        'echo "dhcp-range=192.168.1.10,192.168.1.100,24h" >> /etc/dnsmasq.conf'
+                    ],
+                    cmdRegex: '^echo\\s+[\'"]dhcp-range=192\\.168\\.1\\.10,192\\.168\\.1\\.100,24h[\'"]\\s+>>\\s+/etc/dnsmasq\\.conf$',
+                    expectedCmd: "echo 'dhcp-range=192.168.1.10,192.168.1.100,24h' >> /etc/dnsmasq.conf",
+                    explanation: 'Параметр dhcp-range задает границы динамического пула и время аренды адреса клиентом (24 часа).',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 7: DHCP-сервер'
+                },
+                {
+                    id: 'exam_all_12',
+                    topicId: 7,
+                    host: 'HQ-CLI',
+                    prompt: 'root@hq-cli:~# ',
+                    task: 'Запросите IP-адрес по DHCP на интерфейсе enp7s1 с подробным выводом (verbose)',
+                    correctAnswers: [
+                        'dhclient -v enp7s1',
+                        'dhclient -v'
+                    ],
+                    cmdRegex: '^dhclient(\\s+-v)?(\\s+enp7s1)?$',
+                    expectedCmd: 'dhclient -v enp7s1',
+                    explanation: 'dhclient -v выводит фазы DISCOVER -> OFFER -> REQUEST -> ACK и подтверждает получение адреса.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 7: Проверка DHCP'
+                },
+                {
+                    id: 'exam_all_13',
+                    topicId: 8,
+                    host: 'HQ-SRV',
+                    prompt: 'root@hq-srv:~# ',
+                    task: 'Укажите nameserver 127.0.0.1 в resolv.conf интерфейса enp0s3.100 на сервере',
+                    correctAnswers: [
+                        "echo 'nameserver 127.0.0.1' > /etc/net/ifaces/enp0s3.100/resolv.conf",
+                        'echo "nameserver 127.0.0.1" > /etc/net/ifaces/enp0s3.100/resolv.conf'
+                    ],
+                    cmdRegex: '^echo\\s+[\'"]nameserver\\s+127\\.0\\.0\\.1[\'"]\\s+>\\s+/etc/net/ifaces/enp0s3\\.100/resolv\\.conf$',
+                    expectedCmd: "echo 'nameserver 127.0.0.1' > /etc/net/ifaces/enp0s3.100/resolv.conf",
+                    explanation: 'ВАЖНО: В resolv.conf пишется nameserver 127.0.0.1 через ПРОБЕЛ, а не со знаком равно (=)!',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 8: DNS-сервер'
+                },
+                {
+                    id: 'exam_all_14',
+                    topicId: 8,
+                    host: 'HQ-SRV',
+                    prompt: 'root@hq-srv:~# ',
+                    task: 'Проверьте сквозную работу DNS и интернета — отправьте 3 пакета ping на ya.ru',
+                    correctAnswers: [
+                        'ping -c 3 ya.ru',
+                        'ping -c 2 ya.ru',
+                        'ping -c 4 ya.ru',
+                        'ping ya.ru'
+                    ],
+                    cmdRegex: '^ping(\\s+-c\\s+[1-9])?\\s+ya\\.ru$',
+                    expectedCmd: 'ping -c 3 ya.ru',
+                    explanation: 'Пинг ya.ru проверяет одновременно: работу DNS (имя ya.ru разрешается в IP), шлюз по умолчанию и NAT.',
+                    type: 'practical',
+                    examTypeLabel: 'Тема 8: Итоговая проверка'
                 }
-            }
-
-            // 2. Выбираем 3 вопроса преподавателя
-            const teacherPool = [...APP_DATA.teacherTasks].sort(() => 0.5 - Math.random());
-            teacherPool.slice(0, 3).forEach(t => {
-                selectedTeacher.push(Object.assign({}, t, {
-                    type: 'teacher',
-                    examTypeLabel: 'Вопрос преподавателя'
-                }));
-            });
+            ];
         } else {
             // Экзамен по конкретной выбранной теме
             const tid = parseInt(selectedTopic, 10);
@@ -161,6 +386,11 @@ class ExamManager {
 
     startNewExam() {
         if (this.timerInterval) clearInterval(this.timerInterval);
+
+        if (this.durationSelect) {
+            const mins = parseInt(this.durationSelect.value, 10) || 45;
+            this.examDurationSeconds = mins * 60;
+        }
 
         this.questions = this.generateExamPool();
         this.currentQIndex = 0;
@@ -319,10 +549,20 @@ class ExamManager {
         const normUser = this.normalize(cmd);
 
         let isCorrect = false;
-        if (q.type === 'practical') {
+        if (q.cmdRegex) {
+            try {
+                const rx = new RegExp(q.cmdRegex, 'i');
+                if (rx.test(cmd)) isCorrect = true;
+            } catch(e) {}
+        }
+        if (!isCorrect && Array.isArray(q.correctAnswers)) {
             isCorrect = q.correctAnswers.some(ans => this.normalize(ans) === normUser);
-        } else {
+        }
+        if (!isCorrect && Array.isArray(q.validCommands)) {
             isCorrect = q.validCommands.some(ans => this.normalize(ans) === normUser);
+        }
+        if (!isCorrect && q.expectedCmd) {
+            isCorrect = this.normalize(q.expectedCmd) === normUser;
         }
 
         this.userAnswers[this.currentQIndex] = {
@@ -367,32 +607,35 @@ class ExamManager {
             if (ans && ans.isCorrect) correctCount++;
         });
 
-        // 5-балльная шкала
+        const pct = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+
+        // 5-балльная шкала по процентам
         let grade = 2;
         let gradeTitle = 'Неудовлетворительно';
         let gradeColor = '#ef4444';
-        let gradeNote = 'Материал требует повторения перед сдачей 14 ноября. Пройдите практики 2–8 в обычном режиме.';
+        let gradeNote = 'Материал требует повторения перед сдачей 14 ноября. Пройдите экспресс-повторение всех команд.';
 
-        if (correctCount >= 7) {
+        if (pct >= 85) {
             grade = 5;
             gradeTitle = 'Отлично';
             gradeColor = '#10b981';
-            gradeNote = 'Стенд освоен на высоком уровне! Свободное владение конфигурацией и диагностикой.';
-        } else if (correctCount >= 5) {
+            gradeNote = 'Стенд освоен на высшем уровне! Свободное владение настройкой всех служб и их диагностикой.';
+        } else if (pct >= 70) {
             grade = 4;
             gradeTitle = 'Хорошо';
             gradeColor = '#3b82f6';
             gradeNote = 'Твёрдый зачёт. Обратите внимание на ошибки в билетах ниже, чтобы не допустить их на экзамене.';
-        } else if (correctCount >= 3) {
+        } else if (pct >= 50) {
             grade = 3;
             gradeTitle = 'Удовлетворительно';
             gradeColor = '#f59e0b';
-            gradeNote = 'Базовые знания есть, но в стрессовой ситуации есть риск провалиться. Потренируйтесь в режиме «Авария».';
+            gradeNote = 'Базовые знания есть, но в стрессовой ситуации есть риск растеряться. Повторите команды.';
         }
 
         const timeSpent = this.examDurationSeconds - this.timeRemaining;
         const minsSpent = Math.floor(timeSpent / 60);
         const secsSpent = timeSpent % 60;
+        const limitMins = Math.floor(this.examDurationSeconds / 60);
 
         let html = `
             <div class="exam-report-card">
@@ -403,8 +646,8 @@ class ExamManager {
                     </div>
                     <div class="report-meta">
                         <h2>Протокол сдачи экзамена: ОС «Альт» и Proxmox VE</h2>
-                        <p class="text-sm text-light mb-1">Время сдачи: <b>${minsSpent} мин ${secsSpent} сек</b> (лимит: 15:00)</p>
-                        <p class="text-sm">Правильных ответов: <b style="color:${gradeColor}">${correctCount} из ${totalQ}</b> (${Math.round((correctCount / totalQ) * 100)}%)</p>
+                        <p class="text-sm text-light mb-1">Время сдачи: <b>${minsSpent} мин ${secsSpent} сек</b> (лимит: ${limitMins}:00)</p>
+                        <p class="text-sm">Правильных ответов: <b style="color:${gradeColor}">${correctCount} из ${totalQ}</b> (${pct}%)</p>
                         <p class="report-note-box">${gradeNote}</p>
                     </div>
                 </div>
@@ -418,7 +661,12 @@ class ExamManager {
             const ans = this.userAnswers[idx];
             const isCorrect = ans && ans.isCorrect;
             const userCmd = ans ? ans.rawCmd : '(Не было попытки ответа)';
-            const correctRef = q.type === 'practical' ? q.correctAnswers[0] : q.validCommands[0];
+            const correctRef = (Array.isArray(q.correctAnswers) && q.correctAnswers[0]) 
+                || (Array.isArray(q.validCommands) && q.validCommands[0]) 
+                || q.expectedCmd 
+                || '';
+            const goalText = q.task || q.description || q.question || q.teacherSpeech || '';
+            const whyText = q.explanation || q.why || '';
 
             html += `
                 <div class="exam-item-card ${isCorrect ? 'border-success' : 'border-danger'}">
@@ -428,7 +676,7 @@ class ExamManager {
                     </div>
 
                     <div class="text-light text-sm mb-2">
-                        ${q.type === 'practical' ? `<b>Задание:</b> ${q.task}` : `<b>Вопрос:</b> «${q.question}»`}
+                        <b>Задание/Проверка:</b> ${this.escapeHtml(goalText)}
                     </div>
 
                     <div class="exam-diff-grid">
@@ -443,7 +691,7 @@ class ExamManager {
                     </div>
 
                     <div class="exam-exp-box mt-2 text-xs text-muted">
-                        💡 <b>Почему так:</b> ${q.explanation}
+                        💡 <b>Пояснение:</b> ${this.escapeHtml(whyText)}
                     </div>
                 </div>
             `;

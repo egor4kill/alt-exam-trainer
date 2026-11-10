@@ -47,10 +47,10 @@
                         🚨 <span>Аварии & Сценарии</span> <span class="badge-mini badge-danger-mini">Траблшутинг</span>
                     </button>
                     <button class="nav-tab" data-target="sec-exam" id="tab-btn-exam">
-                        ⏱️ <span>Экзамен</span> <span class="badge-mini badge-warning-mini">15 мин</span>
+                        ⏱️ <span>Экзамен</span> <span class="badge-mini badge-warning-mini">45 мин</span>
                     </button>
-                    <button class="nav-tab" data-target="sec-teacher" id="tab-btn-teacher">
-                        🧑‍🏫 <span>Сдача у преподавателя</span>
+                    <button class="nav-tab" data-target="sec-drill" id="tab-btn-drill">
+                        ⚡ <span>Повторение всех команд</span> <span class="badge-mini" style="background:#06b6d433; color:#06b6d4; border:1px solid #06b6d4">37 шт</span>
                     </button>
                     <button class="nav-tab" data-target="sec-defense" id="tab-btn-defense">
                         🎓 <span>Теория и Ответы</span>
@@ -469,53 +469,65 @@
 
 
         <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 3: РЕЖИМ «ЭКЗАМЕН» (ТАЙМЕР 15 МИН, 5 ЗАДАЧ + 3 ВОПРОСА)    -->
+        <!-- РАЗДЕЛ 3: РЕЖИМ «ЭКЗАМЕН» (ТАЙМЕР ДО 60 МИН, ТЕМЫ 2–8 + ПРОВЕРКА РАБОТЫ) -->
         <!-- =================================================================== -->
         <section id="sec-exam" class="app-section">
             <!-- Стартовый баннер экзамена -->
             <div id="exam-intro-box" class="exam-intro-card">
                 <div class="exam-intro-icon">⏱️</div>
-                <h2 class="text-yellow mb-2">Режим «Экзамен»: Проверка готовности к 14 ноября</h2>
+                <h2 class="text-yellow mb-2">Режим «Экзамен»: Полная симуляция сдачи (Темы 2–8)</h2>
                 <p class="text-light mb-4 max-w-700">
-                    Настоящая симуляция сдачи лабораторной работы. Вам случайным образом выпадут <b>5 практических задач</b> по настройке стенда и <b>3 вопроса экзаменатора</b>. 
-                    Подсказки и ответы <b>отключены</b>. В конце вы получите оценку по 5-балльной шкале и полный разбор допущенных ошибок.
+                    Настоящий экзамен у преподавателя: последовательно проходим по всем темам от настройки времени до DNS и туннелей OSPF, и <b>на каждом этапе проверяем реальную работоспособность</b> через ping, vtysh, dhclient и dig. Подсказки и шаблоны <b>отключены</b>.
                 </p>
 
                 <div class="exam-rules-grid mb-4">
                     <div class="rule-item">
                         <span class="rule-icon">⏳</span>
-                        <b>15 минут</b>
-                        <span class="text-xs text-muted">Таймер обратного отсчета</span>
+                        <b id="exam-rule-duration-text">45 минут</b>
+                        <span class="text-xs text-muted">Настраиваемый таймер</span>
                     </div>
                     <div class="rule-item">
-                        <span class="rule-icon">🔒</span>
-                        <b>Без подсказок</b>
-                        <span class="text-xs text-muted">Рассчитывайте только на себя</span>
+                        <span class="rule-icon">🔍</span>
+                        <b>Проверка работы</b>
+                        <span class="text-xs text-muted">Настройка + диагностика</span>
                     </div>
                     <div class="rule-item">
                         <span class="rule-icon">📊</span>
                         <b>Табель оценок</b>
-                        <span class="text-xs text-muted">Детальный разбор всех билетов</span>
+                        <span class="text-xs text-muted">Разбор всех 14 билетов</span>
                     </div>
                 </div>
 
-                                <!-- Выбор темы экзамена -->
+                <!-- Выбор времени и темы экзамена -->
                 <div class="mb-4 text-center">
-                    <label for="exam-topic-select" class="text-sm text-cyan font-bold block mb-1">🎯 Выберите направление сдачи экзамена:</label>
-                    <select id="exam-topic-select" class="form-select" style="max-width: 480px; width: 100%; margin: 0 auto; background: #0f172a; color: #fff; border: 1px solid #06b6d4; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.95rem;">
-                        <option value="all">🌟 Все темы подряд (Итоговый срез 2–8) [8 билетов]</option>
-                        <option value="2">Практика 2: FQDN и Часовой пояс (timedatectl, hostname)</option>
-                        <option value="3">Практика 3: Сеть в ОС «Альт» (/etc/net, options, ip)</option>
-                        <option value="4">Практика 4: VLAN 100 / 200 / 999 (802.1Q сабинтерфейсы)</option>
-                        <option value="5">Практика 5: NAT, iptables и sysctl (MASQUERADE, forward)</option>
-                        <option value="6">Практика 6: GRE-туннель и OSPF (FRR, vtysh, MD5, MTU 1476)</option>
-                        <option value="7">Практика 7: DHCP-сервер (dnsmasq, dhclient)</option>
-                        <option value="8">Практика 8: DNS-сервер и SSH (au-team.irpo, порт 2026)</option>
-                    </select>
+                    <div class="d-flex justify-center gap-3 flex-wrap mb-3">
+                        <div style="text-align: left; max-width: 220px; width: 100%;">
+                            <label for="exam-duration-select" class="text-xs text-yellow font-bold block mb-1">⏳ Время на экзамен:</label>
+                            <select id="exam-duration-select" class="form-select" style="width: 100%; background: #0f172a; color: #fff; border: 1px solid #eab308; padding: 0.55rem 0.8rem; border-radius: 8px; font-size: 0.9rem;">
+                                <option value="45" selected>45 минут (Рекомендуется)</option>
+                                <option value="60">60 минут (Максимум)</option>
+                                <option value="30">30 минут (Интенсив)</option>
+                                <option value="15">15 минут (Спринт)</option>
+                            </select>
+                        </div>
+                        <div style="text-align: left; max-width: 480px; width: 100%;">
+                            <label for="exam-topic-select" class="text-xs text-cyan font-bold block mb-1">🎯 Направление сдачи экзамена:</label>
+                            <select id="exam-topic-select" class="form-select" style="width: 100%; background: #0f172a; color: #fff; border: 1px solid #06b6d4; padding: 0.55rem 0.8rem; border-radius: 8px; font-size: 0.9rem;">
+                                <option value="all" selected>🌟 Все темы подряд + Проверка работоспособности (14 билетов)</option>
+                                <option value="2">Практика 2: FQDN и Часовой пояс (timedatectl, hostname)</option>
+                                <option value="3">Практика 3: Сеть в ОС «Альт» (/etc/net, options, ip)</option>
+                                <option value="4">Практика 4: VLAN 100 / 200 / 999 (802.1Q сабинтерфейсы)</option>
+                                <option value="5">Практика 5: NAT, iptables и sysctl (MASQUERADE, forward)</option>
+                                <option value="6">Практика 6: GRE-туннель и OSPF (FRR, vtysh, MD5, MTU 1476)</option>
+                                <option value="7">Практика 7: DHCP-сервер (dnsmasq, dhclient)</option>
+                                <option value="8">Практика 8: DNS-сервер и SSH (au-team.irpo, порт 2026)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <button id="exam-btn-start" class="btn btn-lg btn-success">
-                    ▶ Начать экзамен (15:00)
+                    ▶ Начать экзамен (45:00)
                 </button>
             </div>
 
@@ -602,105 +614,145 @@
 
 
         <!-- =================================================================== -->
-        <!-- РАЗДЕЛ 4: СДАЧА У ПРЕПОДАВАТЕЛЯ (РЕАЛИСТИЧНЫЙ ЭКЗАМЕНАТОР)          -->
+        <!-- РАЗДЕЛ 4: ЭКСПРЕСС-ПОВТОРЕНИЕ ВСЕХ КОМАНД (37 УНИКАЛЬНЫХ КОМАНД)     -->
         <!-- =================================================================== -->
-        <section id="sec-teacher" class="app-section">
-            <!-- Карточка диалога с преподавателем -->
-            <div class="teacher-speech-card">
-                <div class="teacher-avatar-box">👨‍🏫</div>
-                <div class="teacher-speech-bubble">
-                    <div class="d-flex justify-between align-center mb-1">
-                        <div class="teacher-name-tag">Экзаменатор / Преподаватель</div>
-                        <span id="teacher-host-badge" class="badge" style="background:#10b98122; color:#10b981; border:1px solid #10b981">
-                            HQ-RTR
-                        </span>
+        <section id="sec-drill" class="app-section">
+            <!-- Шапка экспресс-повторения -->
+            <div class="drill-header-card" style="background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(6,182,212,0.15)); border: 1px solid #06b6d444; border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;">
+                <div class="d-flex justify-between align-center flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-center gap-2">
+                        <span style="font-size: 1.8rem;">⚡</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.25rem; color: #38bdf8;">Экспресс-повторение всех команд (Практики 2–8)</h2>
+                            <p class="text-xs text-light" style="margin: 2px 0 0 0; color: #94a3b8;">
+                                37 ключевых команд без повторов и рутины. Прогоните перед экзаменом за 5–10 минут!
+                            </p>
+                        </div>
                     </div>
-                    <div id="teacher-speech-text" class="teacher-quote">
-                        «Так, покажи мне текущее системное время и какой часовой пояс сейчас выставлен на этом маршрутизаторе.»
+
+                    <!-- Переключатель режима: Тренажер vs Шпаргалка -->
+                    <div class="d-flex align-center gap-2 flex-wrap">
+                        <div class="subtabs-group" style="display:flex; gap:4px;">
+                            <button id="drill-mode-term" class="trouble-subtab active">💻 Ввод команд</button>
+                            <button id="drill-mode-list" class="trouble-subtab">📋 Все команды списком</button>
+                        </div>
+                        <button id="btn-reset-drill-progress" class="btn btn-sm btn-outline text-muted" title="Сбросить прогресс">🔄 Сброс</button>
                     </div>
-                    <div id="teacher-task-goal" class="teacher-goal-text">
-                        Цель: Показать системное время и часовой пояс
+                </div>
+
+                <!-- Фильтр по темам и счетчики -->
+                <div class="d-flex justify-between align-center flex-wrap gap-2 pt-2" style="border-top: 1px solid rgba(255,255,255,0.08);">
+                    <div class="d-flex align-center gap-2 flex-wrap">
+                        <label for="drill-topic-filter" class="text-xs text-muted">Фильтр тем:</label>
+                        <select id="drill-topic-filter" class="form-select text-xs" style="background:#0b1329; color:#f1f5f9; border:1px solid #06b6d4; padding:0.35rem 0.65rem; border-radius:6px;">
+                            <option value="all">🌟 Все темы подряд (37 команд)</option>
+                            <option value="2">Тема 2: Время и FQDN (5)</option>
+                            <option value="3">Тема 3: Сеть /etc/net (4)</option>
+                            <option value="4">Тема 4: VLAN 802.1Q (5)</option>
+                            <option value="5">Тема 5: NAT & iptables (5)</option>
+                            <option value="6">Тема 6: GRE & OSPF (5)</option>
+                            <option value="7">Тема 7: DHCP-сервер (4)</option>
+                            <option value="8">Тема 8: DNS & SSH (5)</option>
+                            <option value="9">🔍 Контрольные проверки (4)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex align-center gap-3">
+                        <span class="text-xs text-muted">Выучено: <b id="stat-drill-completed" class="text-green">0 / 37</b></span>
+                        <span class="badge" style="background:#f59e0b22; color:#f59e0b; border:1px solid #f59e0b" id="stat-drill-streak">🔥 Серия: 0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Панель действий преподавателя -->
-            <div class="teacher-actions-bar">
-                <div class="d-flex gap-2 align-center">
-                    <span id="teacher-task-counter" class="text-sm text-muted">Вопрос 1 из 24</span>
-                    <span class="text-muted text-sm">| Сдано:</span>
-                    <b id="stat-teacher-completed" class="text-green text-sm">0 / 24</b>
+            <!-- Режим 1: Интерактивный терминальный тренажер -->
+            <div id="drill-pane-term">
+                <!-- Навигатор заданий-пилюль -->
+                <div class="task-nav-container mb-3">
+                    <span class="task-nav-label">Команды:</span>
+                    <div id="drill-task-nav" class="task-nav-pills"></div>
                 </div>
-                <div class="d-flex gap-2 align-center flex-wrap">
-                    <button id="teacher-btn-hint" class="btn btn-sm btn-outline text-yellow">
-                        💡 Подсказка <kbd>F1</kbd>
-                    </button>
-                    <button id="teacher-btn-answer" class="btn btn-sm btn-outline text-cyan">
-                        👁 Ответ <kbd>F2</kbd>
-                    </button>
-                    <button id="teacher-btn-paste" class="btn btn-sm btn-outline">
-                        📋 Вставить <kbd>F3</kbd>
-                    </button>
-                    <button id="btn-reset-teacher-progress" class="btn btn-sm btn-outline text-muted" title="Сбросить прогресс сдачи">
-                        🔄 Сброс
-                    </button>
+
+                <!-- Карточка текущей команды -->
+                <div class="card mb-3" style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:1.15rem;">
+                    <div class="d-flex justify-between align-center flex-wrap gap-2 mb-2">
+                        <div class="d-flex align-center gap-2">
+                            <span id="drill-task-badge" class="badge" style="background:#0284c733; color:#38bdf8; border:1px solid #0284c7">Тема 2</span>
+                            <span id="drill-task-counter" class="text-xs text-muted">Команда 1 из 37</span>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button id="drill-btn-hint" class="btn btn-sm btn-outline text-yellow">💡 Подсказка <kbd>F1</kbd></button>
+                            <button id="drill-btn-template" class="btn btn-sm btn-outline text-cyan">⚡ Шаблон <kbd>F2</kbd></button>
+                            <button id="drill-btn-answer" class="btn btn-sm btn-outline text-purple">👁 Ответ <kbd>F3</kbd></button>
+                            <button id="drill-btn-next" class="btn btn-sm btn-outline">⏭ Следующая</button>
+                        </div>
+                    </div>
+
+                    <h3 id="drill-task-title" style="color:#f1f5f9; font-size:1.15rem; margin:0 0 0.4rem 0;">Заголовок команды</h3>
+                    <p id="drill-task-desc" class="text-light text-sm mb-0" style="color:#cbd5e1;">Описание требуемого действия</p>
+
+                    <!-- Блок динамической подсказки/шаблона/ответа -->
+                    <div id="drill-hint-box" class="hint-container hidden mt-3"></div>
+                </div>
+
+                <!-- Окно терминала -->
+                <div class="terminal-window">
+                    <div class="terminal-titlebar">
+                        <div class="win-dots">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                        </div>
+                        <div class="win-title">
+                            <span>Терминал экспресс-повторения</span> (Быстрый ввод команд)
+                        </div>
+                        <div class="win-status">
+                            <span class="status-dot"></span> Ready
+                        </div>
+                    </div>
+
+                    <div id="drill-term-output" class="terminal-body-content" style="min-height: 160px; max-height: 240px;"></div>
+
+                    <div class="terminal-input-row">
+                        <span id="drill-term-prompt" class="prompt">root@node:~# </span>
+                        <input type="text" id="drill-term-input" class="term-input" 
+                               autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
+                               placeholder="Введите команду Linux...">
+                        <button id="drill-btn-run" class="btn btn-sm btn-success btn-mobile-run" title="Выполнить (Enter)">↵</button>
+                    </div>
+                </div>
+
+                <!-- Мобильная полоса ввода спецсимволов -->
+                <div class="mobile-keyboard-bar">
+                    <button class="key-chip" data-key="/">/</button>
+                    <button class="key-chip" data-key="-">-</button>
+                    <button class="key-chip" data-key="_">_</button>
+                    <button class="key-chip" data-key=".">.</button>
+                    <button class="key-chip" data-key="=">=</button>
+                    <button class="key-chip" data-key=":">:</button>
+                    <button class="key-chip" data-key=";">;</button>
+                    <button class="key-chip" data-key="~">~</button>
+                    <button class="key-chip" data-key="&quot;">"</button>
+                    <button class="key-chip" data-key="'">'</button>
+                    <button class="key-chip" data-key=">">&gt;</button>
+                    <button class="key-chip" data-key="|">|</button>
+                    <button class="key-chip" data-key="*">*</button>
+                    <button class="key-chip" data-key="$">$</button>
+                    <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
+                    <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
                 </div>
             </div>
 
-            <!-- Навигатор вопросов преподавателя -->
-            <div class="task-nav-container">
-                <span class="task-nav-label">Вопросы:</span>
-                <div id="teacher-task-nav" class="task-nav-pills"></div>
-            </div>
-
-            <!-- Контейнер подсказки преподавателя -->
-            <div id="teacher-hint-box" class="hint-container hidden"></div>
-
-            <!-- Терминал режима сдачи в стиле консоли Linux -->
-            <div class="terminal-window">
-                <div class="terminal-titlebar">
-                    <div class="win-dots">
-                        <span class="dot dot-red"></span>
-                        <span class="dot dot-yellow"></span>
-                        <span class="dot dot-green"></span>
+            <!-- Режим 2: Единый список всех 37 команд со шпаргалкой и кнопками копирования -->
+            <div id="drill-pane-list" class="hidden">
+                <div class="card p-3 mb-3" style="background:#0f172a; border:1px solid #334155; border-radius:10px;">
+                    <div class="d-flex justify-between align-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h3 class="text-cyan font-bold" style="margin:0 0 4px 0;">📋 Полная сводка 37 команд для сдачи</h3>
+                            <p class="text-xs text-muted" style="margin:0;">Нажмите кнопку «📋 Скопировать» рядом с любой командой или кликните по тексту.</p>
+                        </div>
                     </div>
-                    <div class="win-title">
-                        <span id="win-teacher-userhost">root@hq-rtr:~</span> (Приём лабораторной работы — Proxmox VE)
-                    </div>
-                    <div class="win-status">
-                        <span class="status-dot"></span> Online
-                    </div>
+                    <div id="drill-cheat-list-container"></div>
                 </div>
-
-                <div id="teacher-term-output" class="terminal-body-content"></div>
-
-                <div class="terminal-input-row">
-                    <span id="teacher-term-prompt" class="prompt">root@hq-rtr:~# </span>
-                    <input type="text" id="teacher-term-input" class="term-input" 
-                           autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false" 
-                           placeholder="Введите команду для ответа...">
-                    <button id="teacher-btn-run" class="btn btn-sm btn-success btn-mobile-run" title="Отправить преподавателю (Enter)">↵</button>
-                </div>
-            </div>
-
-            <!-- Мобильная полоса ввода спецсимволов и Tab (без готовых ответов) -->
-            <div class="mobile-keyboard-bar">
-                <button class="key-chip" data-key="/">/</button>
-                <button class="key-chip" data-key="-">-</button>
-                <button class="key-chip" data-key="_">_</button>
-                <button class="key-chip" data-key=".">.</button>
-                <button class="key-chip" data-key="=">=</button>
-                <button class="key-chip" data-key=":">:</button>
-                <button class="key-chip" data-key=";">;</button>
-                <button class="key-chip" data-key="~">~</button>
-                <button class="key-chip" data-key="&quot;">"</button>
-                <button class="key-chip" data-key="'">'</button>
-                <button class="key-chip" data-key=">">&gt;</button>
-                <button class="key-chip" data-key="|">|</button>
-                <button class="key-chip" data-key="*">*</button>
-                <button class="key-chip" data-key="$">$</button>
-                <button class="key-chip text-cyan" data-action="tab">⇥ Tab</button>
-                <button class="key-chip text-muted" data-action="clear">✕ Стереть</button>
             </div>
         </section>
 
@@ -1478,6 +1530,7 @@
     <script src="js/breakdown.js"></script>
     <script src="js/terminal.js"></script>
     <script src="js/troubleshoot.js"></script>
+    <script src="js/drill.js"></script>
     <script src="js/exam_mode.js"></script>
     <script src="js/teacher.js"></script>
     <script src="js/topology.js"></script>
