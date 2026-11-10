@@ -1,5 +1,5 @@
 // Service Worker for Alt Linux Exam Trainer PWA
-const CACHE_NAME = 'alt-exam-v1.5';
+const CACHE_NAME = 'alt-exam-v1.6';
 const STATIC_ASSETS = [
   './',
   './index.html',

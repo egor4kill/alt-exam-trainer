@@ -1403,6 +1403,44 @@
                                 </ul>
                             </div>
                         </div>
+
+                        <!-- 9. Практика 9: Что такое Active Directory и Samba DC -->
+                        <div class="plain-cheat-card" data-tags="active directory ad samba dc kerberos kinit br-srv krb5 домен контроллер" style="border-color: rgba(168, 85, 247, 0.4);">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">🏛️</span>
+                                    <b style="color: #c084fc;">Практика 9: Что такое Active Directory и Samba DC простыми словами</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p><b>Зачем нужен Active Directory:</b> чтобы не создавать пользователей вручную на каждом из 100 компьютеров компании, создаётся <b>единая центральная база учётных записей</b> на контроллере домена (Samba DC на сервере <code>BR-SRV</code>).</p>
+                                <ul class="plain-list">
+                                    <li><b>Контроллер домена:</b> разворачивается утилитой <code>samba-tool domain provision</code> на <code>BR-SRV</code> (домен <code>AU-TEAM.IRPO</code>).</li>
+                                    <li><b>Kerberos (билеты доступа):</b> защищённый протокол аутентификации. После развёртывания файл <code>/var/lib/samba/private/krb5.conf</code> копируется в <code>/etc/krb5.conf</code>. Проверяется командой <code>kinit administrator</code> и <code>klist</code>.</li>
+                                    <li><b>Интеграция с DNS:</b> в <code>/etc/dnsmasq.conf</code> на HQ-SRV прописывается <code>server=/au-team.irpo/192.168.3.2</code>, чтобы все запросы к домену перенаправлялись на контроллер Samba. Проверяется через <code>dig ... SRV @192.168.3.2</code>.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 10. Практика 10: Локальные vs Доменные пользователи и sudoers -->
+                        <div class="plain-cheat-card" data-tags="пользователи useradd passwd sudo wheel sudoers admc домен hquser net_admin sshuser" style="border-color: rgba(34, 197, 94, 0.4);">
+                            <div class="plain-cheat-header" onclick="togglePlainCheat(this)">
+                                <div class="d-flex align-center gap-2">
+                                    <span class="plain-icon">👥</span>
+                                    <b style="color: #4ade80;">Практика 10: Локальные vs Доменные пользователи и права sudo</b>
+                                </div>
+                                <span class="plain-arrow">▼</span>
+                            </div>
+                            <div class="plain-cheat-body">
+                                <p><b>В чём главная разница:</b></p>
+                                <ul class="plain-list">
+                                    <li><b>Локальные пользователи (Практика 10.1):</b> создаются командой <code>useradd</code> и хранятся в файле <code>/etc/passwd</code> конкретной машины (на серверах — <code>sshuser</code> с UID 2026, на роутерах — <code>net_admin</code>). Для прав root они добавляются в группу <code>wheel</code> (<code>usermod -aG wheel</code>), а в <code>/etc/sudoers</code> раскомментируется строка <code>WHEEL_USERS ALL=(ALL:ALL) NOPASSWD:ALL</code>.</li>
+                                    <li><b>Доменные пользователи (Практика 10.2):</b> создаются на контроллере домена командой <code>samba-tool user create hquser1 123qweR%</code>. Они могут заходить на любую клиентскую машину (напр. <code>HQ-CLI</code>), введённую в домен через утилиту <code>acc</code> (Центр управления системой Альт).</li>
+                                    <li><b>Централизованный sudo:</b> настраивается через пакет <code>sudo-samba-schema</code> и команду <code>create-sudo-rule</code> прямо в домене, что позволяет централизованно разрешать или запрещать команды сразу для группы <code>%hq</code>.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

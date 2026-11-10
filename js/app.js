@@ -182,6 +182,22 @@ function renderCopyableSnippets() {
         {
             title: "NAT и автозапуск правил через crontab",
             code: `sysctl -w net.ipv4.ip_forward=1\necho "net.ipv4.ip_forward=1" >> /etc/net/sysctl.conf\niptables -t nat -A POSTROUTING -o enp7s1 -j MASQUERADE\niptables-save > /root/iptables_rules\n\n# В crontab -e (@reboot):\n@reboot /sbin/iptables-restore < /root/iptables_rules`
+        },
+        {
+            title: "Практика 9: Развёртывание Samba AD DC на BR-SRV",
+            code: `apt-get update && apt-get install task-samba-dc -y\nrm -rf /etc/samba/smb.conf\nsamba-tool domain provision --realm=AU-TEAM.IRPO --domain=AU-TEAM --server-role=dc --dns-backend=SAMBA_INTERNAL --adminpass='123qweR%'\ncp /var/lib/samba/private/krb5.conf /etc/krb5.conf\n\n# В /etc/samba/smb.conf в [global]:\n# interfaces = lo enp0s3\n# bind interfaces only = yes\n\nsystemctl enable --now samba\nsamba-tool domain info 127.0.0.1`
+        },
+        {
+            title: "Практика 9: Интеграция DNS на HQ-SRV для Active Directory",
+            code: `# В /etc/dnsmasq.conf на HQ-SRV добавить строку:\nserver=/au-team.irpo/192.168.3.2\n\nsystemctl restart dnsmasq\n\n# Проверка SRV-записей и Kerberos:\ndig _ldap._tcp.dc._msdcs.au-team.irpo SRV @192.168.3.2\nkinit administrator\nklist`
+        },
+        {
+            title: "Практика 10(1): Локальные пользователи (sshuser и net_admin)",
+            code: `# На HQ-SRV и BR-SRV (серверы):\nuseradd sshuser -u 2026\necho 'sshuser:P@ssw0rd' | chpasswd\nusermod -aG wheel sshuser\n\n# На HQ-RTR и BR-RTR (роутеры):\napt-get update && apt-get install sudo -y\nuseradd net_admin\necho 'net_admin:P@ssw0rd' | chpasswd\nusermod -aG wheel net_admin\n\n# В /etc/sudoers на всех машинах раскомментировать:\n# WHEEL_USERS ALL=(ALL:ALL) NOPASSWD:ALL`
+        },
+        {
+            title: "Практика 10(2): Доменные пользователи и группы на BR-SRV",
+            code: `# Создание пользователей hquser1..hquser5:\nsamba-tool user create hquser1 123qweR%\nsamba-tool user create hquser2 123qweR%\nsamba-tool user create hquser3 123qweR%\nsamba-tool user create hquser4 123qweR%\nsamba-tool user create hquser5 123qweR%\n\n# Создание групп и добавление участников:\nsamba-tool group add hq\nsamba-tool group addmembers hq hquser1,hquser2,hquser3,hquser4,hquser5\nsamba-tool group add net_admins\nsamba-tool group addmembers net_admins administrator\n\n# Проверка:\nsamba-tool user list\nsamba-tool group listmembers hq`
         }
     ];
 
