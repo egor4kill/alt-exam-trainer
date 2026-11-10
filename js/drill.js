@@ -562,7 +562,7 @@ const DRILL_COMMANDS = [
     },
     {
         id: "d34",
-        topicId: 9,
+        topicId: 11,
         topicName: "Контрольные проверки экзаменатора",
         host: "hq-rtr",
         prompt: "root@hq-rtr:~# ",
@@ -579,7 +579,7 @@ const DRILL_COMMANDS = [
     },
     {
         id: "d35",
-        topicId: 9,
+        topicId: 11,
         topicName: "Контрольные проверки экзаменатора",
         host: "hq-cli",
         prompt: "root@hq-cli:~# ",
@@ -595,7 +595,7 @@ const DRILL_COMMANDS = [
     },
     {
         id: "d36",
-        topicId: 9,
+        topicId: 11,
         topicName: "Контрольные проверки экзаменатора",
         host: "hq-cli",
         prompt: "root@hq-cli:~# ",
@@ -612,7 +612,7 @@ const DRILL_COMMANDS = [
     },
     {
         id: "d37",
-        topicId: 9,
+        topicId: 11,
         topicName: "Контрольные проверки экзаменатора",
         host: "hq-cli",
         prompt: "root@hq-cli:~# ",
@@ -626,6 +626,101 @@ const DRILL_COMMANDS = [
         template: "ssh -p 2026 sshuser@192.168.1.2",
         hint: "Флаг порта в клиенте ssh указывается через маленькую -p 2026.",
         why: "Финальная проверка защищённого удалённого доступа к серверу."
+    },
+    {
+        id: "d38",
+        topicId: 9,
+        topicName: "Практика 9: Active Directory (Samba DC)",
+        host: "br-srv",
+        prompt: "root@br-srv:~# ",
+        title: "38. Установка контроллера домена Samba AD DC",
+        task: "Установите пакет контроллера домена task-samba-dc на сервере BR-SRV",
+        correctAnswers: [
+            "apt-get install task-samba-dc -y",
+            "apt-get install task-samba-dc"
+        ],
+        template: "apt-get install task-samba-dc -y",
+        hint: "Используйте менеджер apt-get с ключом -y.",
+        why: "Пакет task-samba-dc устанавливает Samba 4 со встроенной службой Active Directory."
+    },
+    {
+        id: "d39",
+        topicId: 9,
+        topicName: "Практика 9: Active Directory (Samba DC)",
+        host: "br-srv",
+        prompt: "root@br-srv:~# ",
+        title: "39. Проверка статуса домена через samba-tool",
+        task: "Выведите информацию о развёрнутом домене Active Directory через samba-tool",
+        correctAnswers: [
+            "samba-tool domain info 127.0.0.1"
+        ],
+        template: "samba-tool domain info 127.0.0.1",
+        hint: "Команда: samba-tool domain info 127.0.0.1",
+        why: "Подтверждает, что контроллер домена Samba DC запущен и отдаёт имя леса и домена au-team.irpo."
+    },
+    {
+        id: "d40",
+        topicId: 9,
+        topicName: "Практика 9: Active Directory (Samba DC)",
+        host: "hq-srv",
+        prompt: "root@hq-srv:~# ",
+        title: "40. Получение тикета Kerberos администратора",
+        task: "Запросите билет аутентификации Kerberos для administrator домена AU-TEAM.IRPO",
+        correctAnswers: [
+            "kinit administrator",
+            "kinit administrator@AU-TEAM.IRPO"
+        ],
+        template: "kinit administrator",
+        hint: "Утилита kinit запрашивает билет TGT (пароль 123qweR%).",
+        why: "Подтверждает корректность работы KDC и синхронизацию системного времени."
+    },
+    {
+        id: "d41",
+        topicId: 10,
+        topicName: "Практика 10: Локальные & Доменные пользователи",
+        host: "hq-srv",
+        prompt: "root@hq-srv:~# ",
+        title: "41. Создание пользователя sshuser с UID 2026",
+        task: "Создайте локального пользователя sshuser с числовым UID 2026",
+        correctAnswers: [
+            "useradd sshuser -u 2026",
+            "useradd -u 2026 sshuser"
+        ],
+        template: "useradd sshuser -u 2026",
+        hint: "Флаг -u 2026 задаёт идентификатор пользователя UID.",
+        why: "UID 2026 зафиксирован в регламенте для привязки к порту SSH."
+    },
+    {
+        id: "d42",
+        topicId: 10,
+        topicName: "Практика 10: Локальные & Доменные пользователи",
+        host: "hq-rtr",
+        prompt: "root@hq-rtr:~# ",
+        title: "42. Установка утилиты sudo на маршрутизаторе",
+        task: "На маршрутизаторе HQ-RTR (Альт JeOS) установите пакет sudo",
+        correctAnswers: [
+            "apt-get update && apt-get install sudo -y",
+            "apt-get install sudo -y",
+            "apt-get install sudo"
+        ],
+        template: "apt-get install sudo -y",
+        hint: "В дистрибутиве Альт JeOS sudo не входит в базовую поставку.",
+        why: "Без пакета sudo сетевой администратор net_admin не сможет выполнять команды с привилегиями root."
+    },
+    {
+        id: "d43",
+        topicId: 10,
+        topicName: "Практика 10: Локальные & Доменные пользователи",
+        host: "br-srv",
+        prompt: "root@br-srv:~# ",
+        title: "43. Создание группы пользователей hq в Samba AD",
+        task: "Создайте в Active Directory группу пользователей hq командой samba-tool",
+        correctAnswers: [
+            "samba-tool group add hq"
+        ],
+        template: "samba-tool group add hq",
+        hint: "Команда: samba-tool group add hq",
+        why: "Группа безопасности hq объединяет сотрудников центрального офиса."
     }
 ];
 

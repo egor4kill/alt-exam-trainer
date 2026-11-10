@@ -167,7 +167,9 @@ const APP_DATA = {
         { id: 5, name: "Практика 5: NAT, iptables и sysctl", badge: "NAT & Firewall" },
         { id: 6, name: "Практика 6: GRE-туннель и OSPF (FRR)", badge: "GRE & OSPF" },
         { id: 7, name: "Практика 7: DHCP-сервер (dnsmasq)", badge: "DHCP" },
-        { id: 8, name: "Практика 8: DNS-сервер и SSH (порт 2026)", badge: "DNS & SSH" }
+        { id: 8, name: "Практика 8: DNS-сервер и SSH (порт 2026)", badge: "DNS & SSH" },
+        { id: 9, name: "Практика 9: Active Directory (Samba DC)", badge: "Active Directory" },
+        { id: 10, name: "Практика 10: Локальные и доменные учётные записи", badge: "Users & Sudo" }
     ],
 
     // 5. Задания тренажёра команд (для интерактивной консоли)
@@ -1608,6 +1610,230 @@ const APP_DATA = {
                 "hint1": "Подключение пользователем sshuser на защищенный порт 2026 с использованием доменного имени.",
                 "hint2": "Синтаксис: ssh <пользователь>@<FQDN> -p <порт>",
                 "explanation": "Финальная точка демонстрации стенда: DNS, OSPF, VLAN и SSH работают безупречно!"
+        },
+        // --- ТЕМА 9: Active Directory (Samba DC на BR-SRV) ---
+        {
+                "id": "cmd_9_1",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Установите пакет контроллера домена task-samba-dc на сервере BR-SRV",
+                "correctAnswers": [
+                        "apt-get install task-samba-dc -y",
+                        "apt-get install task-samba-dc"
+                ],
+                "hint1": "Используйте пакетный менеджер apt-get с ключом -y для автоподтверждения.",
+                "hint2": "Синтаксис: apt-get install task-samba-dc -y",
+                "explanation": "Пакет task-samba-dc содержит Samba 4 со службой Active Directory Domain Controller."
+        },
+        {
+                "id": "cmd_9_2",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Удалите стандартный конфигурационный файл /etc/samba/smb.conf перед инициализацией домена",
+                "correctAnswers": [
+                        "rm -rf /etc/samba/smb.conf",
+                        "rm -f /etc/samba/smb.conf",
+                        "rm /etc/samba/smb.conf"
+                ],
+                "hint1": "Команда rm -rf удалит старый конфиг без запроса подтверждения.",
+                "hint2": "Синтаксис: rm -rf /etc/samba/smb.conf",
+                "explanation": "Утилита samba-tool откажется развёртывать домен, если файл smb.conf уже существует."
+        },
+        {
+                "id": "cmd_9_3",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Запустите утилиту развёртывания контроллера домена samba-tool",
+                "correctAnswers": [
+                        "samba-tool domain provision",
+                        "samba-tool domain provision --realm=AU-TEAM.IRPO --domain=AU-TEAM --server-role=dc --dns-backend=SAMBA_INTERNAL --adminpass='123qweR%'"
+                ],
+                "hint1": "Команда: samba-tool domain provision. Нажимайте Enter для настроек по умолчанию.",
+                "hint2": "Синтаксис: samba-tool domain provision",
+                "explanation": "Создается домен AU-TEAM.IRPO, внутренняя база LDAP и Kerberos KDC с паролем 123qweR%."
+        },
+        {
+                "id": "cmd_9_4",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Скопируйте сгенерированный файл конфигурации Kerberos в системный каталог /etc/krb5.conf",
+                "correctAnswers": [
+                        "cp /var/lib/samba/private/krb5.conf /etc/krb5.conf"
+                ],
+                "hint1": "Файл лежит в /var/lib/samba/private/krb5.conf.",
+                "hint2": "Синтаксис: cp /var/lib/samba/private/krb5.conf /etc/krb5.conf",
+                "explanation": "Системные библиотеки Kerberos ищут настройки области AU-TEAM.IRPO именно в /etc/krb5.conf."
+        },
+        {
+                "id": "cmd_9_5",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Включите службу samba в автозагрузку и запустите её",
+                "correctAnswers": [
+                        "systemctl enable --now samba"
+                ],
+                "hint1": "Ключ enable --now выполняет включение автозагрузки и немедленный запуск.",
+                "hint2": "Синтаксис: systemctl enable --now samba",
+                "explanation": "Служба samba запускает контроллер домена Active Directory."
+        },
+        {
+                "id": "cmd_9_6",
+                "topicId": 9,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Проверьте статус и информацию о домене Active Directory через samba-tool",
+                "correctAnswers": [
+                        "samba-tool domain info 127.0.0.1"
+                ],
+                "hint1": "Команда samba-tool domain info опрашивает локальный хост 127.0.0.1.",
+                "hint2": "Синтаксис: samba-tool domain info 127.0.0.1",
+                "explanation": "Команда выводит имя леса, домена (au-team.irpo) и подтверждает работоспособность DC."
+        },
+        {
+                "id": "cmd_9_7",
+                "topicId": 9,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "На HQ-SRV перенаправьте запросы домена au-team.irpo на контроллер 192.168.3.2 в dnsmasq.conf",
+                "correctAnswers": [
+                        "echo 'server=/au-team.irpo/192.168.3.2' >> /etc/dnsmasq.conf",
+                        "echo \"server=/au-team.irpo/192.168.3.2\" >> /etc/dnsmasq.conf"
+                ],
+                "hint1": "Директива server=/au-team.irpo/192.168.3.2 перенаправляет зону на Samba DNS.",
+                "hint2": "Синтаксис: echo 'server=/au-team.irpo/192.168.3.2' >> /etc/dnsmasq.conf",
+                "explanation": "Интеграция DNS позволяет клиентам офиса HQ находить контроллер домена в филиале."
+        },
+        {
+                "id": "cmd_9_8",
+                "topicId": 9,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Запросите билет Kerberos для пользователя administrator домена AU-TEAM.IRPO",
+                "correctAnswers": [
+                        "kinit administrator",
+                        "kinit administrator@AU-TEAM.IRPO"
+                ],
+                "hint1": "Утилита kinit запрашивает билет у KDC сервера BR-SRV (пароль: 123qweR%).",
+                "hint2": "Синтаксис: kinit administrator",
+                "explanation": "Получение билета TGT (проверяется через klist) подтверждает работу доменной аутентификации."
+        },
+        // --- ТЕМА 10: Локальные и доменные учётные записи, группы и sudoers ---
+        {
+                "id": "cmd_10_1",
+                "topicId": 10,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Создайте локального пользователя sshuser с идентификатором пользователя (UID) 2026",
+                "correctAnswers": [
+                        "useradd sshuser -u 2026",
+                        "useradd -u 2026 sshuser"
+                ],
+                "hint1": "Ключ -u задает числовой UID пользователя.",
+                "hint2": "Синтаксис: useradd sshuser -u 2026",
+                "explanation": "UID 2026 соответствует порту SSH по регламенту лабораторной работы."
+        },
+        {
+                "id": "cmd_10_2",
+                "topicId": 10,
+                "host": "hq-srv",
+                "prompt": "root@hq-srv:~# ",
+                "task": "Добавьте пользователя sshuser в дополнительную административную группу wheel",
+                "correctAnswers": [
+                        "usermod -aG wheel sshuser",
+                        "usermod -a -G wheel sshuser"
+                ],
+                "hint1": "Ключи -aG добавляют в группу wheel без удаления из других групп.",
+                "hint2": "Синтаксис: usermod -aG wheel sshuser",
+                "explanation": "Группа wheel используется в Linux для предоставления административных полномочий sudo."
+        },
+        {
+                "id": "cmd_10_3",
+                "topicId": 10,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "На маршрутизаторе HQ-RTR (Альт JeOS) установите утилиту sudo",
+                "correctAnswers": [
+                        "apt-get update && apt-get install sudo -y",
+                        "apt-get install sudo -y",
+                        "apt-get install sudo"
+                ],
+                "hint1": "В минимальном дистрибутиве Альт JeOS пакета sudo нет из коробки.",
+                "hint2": "Синтаксис: apt-get install sudo -y",
+                "explanation": "Пакет sudo необходим для безопасного делегирования прав сетевому администратору."
+        },
+        {
+                "id": "cmd_10_4",
+                "topicId": 10,
+                "host": "hq-rtr",
+                "prompt": "root@hq-rtr:~# ",
+                "task": "Создайте локального пользователя net_admin и добавьте его в группу wheel",
+                "correctAnswers": [
+                        "useradd net_admin && usermod -aG wheel net_admin",
+                        "useradd net_admin; usermod -aG wheel net_admin",
+                        "useradd net_admin"
+                ],
+                "hint1": "Команда useradd net_admin создает пользователя, а usermod -aG wheel net_admin дает права.",
+                "hint2": "Синтаксис: useradd net_admin && usermod -aG wheel net_admin",
+                "explanation": "net_admin — учетная запись сетевого администратора маршрутизаторов."
+        },
+        {
+                "id": "cmd_10_5",
+                "topicId": 10,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Создайте в Active Directory доменного пользователя hquser1 с паролем 123qweR%",
+                "correctAnswers": [
+                        "samba-tool user create hquser1 123qweR%",
+                        "samba-tool user add hquser1 123qweR%"
+                ],
+                "hint1": "Утилита samba-tool user create принимает логин и пароль.",
+                "hint2": "Синтаксис: samba-tool user create hquser1 123qweR%",
+                "explanation": "Доменный пользователь сохраняется в дереве каталогов Samba AD DC."
+        },
+        {
+                "id": "cmd_10_6",
+                "topicId": 10,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Создайте в домене группу безопасности hq командой samba-tool",
+                "correctAnswers": [
+                        "samba-tool group add hq"
+                ],
+                "hint1": "Команда: samba-tool group add hq.",
+                "hint2": "Синтаксис: samba-tool group add hq",
+                "explanation": "Группа hq объединяет учетные записи сотрудников центрального офиса."
+        },
+        {
+                "id": "cmd_10_7",
+                "topicId": 10,
+                "host": "br-srv",
+                "prompt": "root@br-srv:~# ",
+                "task": "Добавьте пользователей hquser1..hquser5 в группу hq (через запятую без пробелов)",
+                "correctAnswers": [
+                        "samba-tool group addmembers hq hquser1,hquser2,hquser3,hquser4,hquser5"
+                ],
+                "hint1": "ВАЖНО: имена перечисляются строго через запятую БЕЗ пробелов!",
+                "hint2": "Синтаксис: samba-tool group addmembers hq hquser1,hquser2,hquser3,hquser4,hquser5",
+                "explanation": "Все 5 пользователей теперь получают групповые права доступа в домене."
+        },
+        {
+                "id": "cmd_10_8",
+                "topicId": 10,
+                "host": "hq-cli",
+                "prompt": "user@hq-cli:~$ ",
+                "task": "На клиентской машине HQ-CLI выведите информацию о текущем пользователе и группах",
+                "correctAnswers": [
+                        "id",
+                        "id hquser1"
+                ],
+                "hint1": "Команда id отображает UID, GID и список групп.",
+                "hint2": "Синтаксис: id",
+                "explanation": "У доменного пользователя UID будет пятизначным (больше 10000), а в группах будет группа hq."
         }
 ],
 

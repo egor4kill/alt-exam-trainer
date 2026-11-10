@@ -38,7 +38,7 @@
                 <button class="nav-scroll-btn nav-scroll-left" id="nav-scroll-btn-left" aria-label="Прокрутить вкладки влево" title="Прокрутить влево">◀</button>
                 <nav class="nav-tabs" id="main-nav-tabs">
                     <button class="nav-tab active" data-target="sec-terminal" id="tab-btn-terminal">
-                        💻 <span>Практика 2–8</span>
+                        💻 <span>Практика 2–10</span>
                     </button>
                     <button class="nav-tab" data-target="sec-stand" id="tab-btn-stand">
                         🖥️ <span>Стенд Proxmox</span> <span class="badge-mini" style="background:#10b98133; color:#10b981; border:1px solid #10b981">6 ВМ</span>
@@ -50,7 +50,7 @@
                         ⏱️ <span>Экзамен</span> <span class="badge-mini badge-warning-mini">45 мин</span>
                     </button>
                     <button class="nav-tab" data-target="sec-drill" id="tab-btn-drill">
-                        ⚡ <span>Повторение всех команд</span> <span class="badge-mini" style="background:#06b6d433; color:#06b6d4; border:1px solid #06b6d4">37 шт</span>
+                        ⚡ <span>Повторение всех команд</span> <span class="badge-mini" style="background:#06b6d433; color:#06b6d4; border:1px solid #06b6d4">43 шт</span>
                     </button>
                     <button class="nav-tab" data-target="sec-defense" id="tab-btn-defense">
                         🎓 <span>Теория и Ответы</span>
@@ -78,7 +78,7 @@
                 <div class="topic-filter-box">
                     <label for="terminal-topic-filter" class="text-sm text-muted">Раздел:</label>
                     <select id="terminal-topic-filter" class="select-custom">
-                        <option value="all">Все практики подряд (2–8) [101 задание]</option>
+                        <option value="all">Все практики подряд (2–10) [117 заданий]</option>
                         <option value="2">Практика 2: FQDN и Часовой пояс [12]</option>
                         <option value="3">Практика 3: Сеть /etc/net (IP, маршруты) [16]</option>
                         <option value="4">Практика 4: VLAN 100 / 200 / 999 [10]</option>
@@ -86,13 +86,15 @@
                         <option value="6">Практика 6: GRE-туннель и OSPF (FRR) [18]</option>
                         <option value="7">Практика 7: DHCP (dnsmasq) [14]</option>
                         <option value="8">Практика 8: DNS и SSH (порт 2026) [17]</option>
+                        <option value="9">Практика 9: Active Directory (Samba DC) [8]</option>
+                        <option value="10">Практика 10: Локальные и доменные учётные записи [8]</option>
                     </select>
                 </div>
 
                 <div class="stats-badges">
                     <div class="stat-item">
                         <span class="text-muted">Прогресс:</span>
-                        <b id="stat-term-completed" class="text-cyan">0 / 101</b>
+                        <b id="stat-term-completed" class="text-cyan">0 / 117</b>
                     </div>
                     <div class="stat-item">
                         <span class="text-muted">Серия:</span>
@@ -521,6 +523,8 @@
                                 <option value="6">Практика 6: GRE-туннель и OSPF (FRR, vtysh, MD5, MTU 1476)</option>
                                 <option value="7">Практика 7: DHCP-сервер (dnsmasq, dhclient)</option>
                                 <option value="8">Практика 8: DNS-сервер и SSH (au-team.irpo, порт 2026)</option>
+                                <option value="9">Практика 9: Active Directory (Samba DC, Kerberos)</option>
+                                <option value="10">Практика 10: Локальные и доменные учётные записи (sudoers)</option>
                             </select>
                         </div>
                     </div>
@@ -645,7 +649,7 @@
                     <div class="d-flex align-center gap-2 flex-wrap">
                         <label for="drill-topic-filter" class="text-xs text-muted">Фильтр тем:</label>
                         <select id="drill-topic-filter" class="form-select text-xs" style="background:#0b1329; color:#f1f5f9; border:1px solid #06b6d4; padding:0.35rem 0.65rem; border-radius:6px;">
-                            <option value="all">🌟 Все темы подряд (37 команд)</option>
+                            <option value="all">🌟 Все темы подряд (43 команды)</option>
                             <option value="2">Тема 2: Время и FQDN (5)</option>
                             <option value="3">Тема 3: Сеть /etc/net (4)</option>
                             <option value="4">Тема 4: VLAN 802.1Q (5)</option>
@@ -653,12 +657,14 @@
                             <option value="6">Тема 6: GRE & OSPF (5)</option>
                             <option value="7">Тема 7: DHCP-сервер (4)</option>
                             <option value="8">Тема 8: DNS & SSH (5)</option>
-                            <option value="9">🔍 Контрольные проверки (4)</option>
+                            <option value="9">Тема 9: Active Directory (3)</option>
+                            <option value="10">Тема 10: Учётные записи & Sudo (3)</option>
+                            <option value="11">🔍 Контрольные проверки (4)</option>
                         </select>
                     </div>
 
                     <div class="d-flex align-center gap-3">
-                        <span class="text-xs text-muted">Выучено: <b id="stat-drill-completed" class="text-green">0 / 37</b></span>
+                        <span class="text-xs text-muted">Выучено: <b id="stat-drill-completed" class="text-green">0 / 43</b></span>
                         <span class="badge" style="background:#f59e0b22; color:#f59e0b; border:1px solid #f59e0b" id="stat-drill-streak">🔥 Серия: 0</span>
                     </div>
                 </div>
