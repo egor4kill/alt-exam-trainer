@@ -834,6 +834,29 @@ class DrillTrainer {
                 e.preventDefault();
                 const key = chip.getAttribute('data-key');
                 const action = chip.getAttribute('data-action');
+
+                // Если открыт текстовый редактор (nano, vim, mcedit) — направляем ввод в него!
+                if (window.terminalEditor && window.terminalEditor.isOpen && window.terminalEditor.textarea) {
+                    const ed = window.terminalEditor;
+                    if (ed.editorType === 'vim' && ed.vimMode !== 'insert') {
+                        ed.setVimMode('insert');
+                    }
+                    if (action === 'tab') {
+                        ed.insertTextAtCursor('    ');
+                    } else if (action === 'clear') {
+                        const ta = ed.textarea;
+                        const start = ta.selectionStart || 0;
+                        if (start > 0) {
+                            ta.value = ta.value.substring(0, start - 1) + ta.value.substring(start);
+                            ta.selectionStart = ta.selectionEnd = start - 1;
+                            ta.dispatchEvent(new Event('input'));
+                        }
+                    } else if (key) {
+                        ed.insertTextAtCursor(key);
+                    }
+                    return;
+                }
+
                 if (action === 'tab') {
                     if (window.altTabCompleter && this.termInput) {
                         window.altTabCompleter.triggerTab(this.termInput);
@@ -958,6 +981,16 @@ class DrillTrainer {
         const task = this.filteredTasks[this.currentIndex];
         if (!task) return;
 
+        // Если пользователь вводит текстовый редактор (nano, vim, vi, mcedit) — открываем документ в редакторе!
+        const editorMatch = cmd.match(/^(nano|vim|vi|mcedit)(\s+.*)?$/i);
+        if (editorMatch && window.terminalEditor) {
+            const edType = editorMatch[1].toLowerCase();
+            const edTarget = (editorMatch[2] || '').trim();
+            this.handleEditorCommand(edType, edTarget, task);
+            if (this.termInput) this.termInput.value = '';
+            return;
+        }
+
         // Нормализация для проверки
         const norm = (str) => str.toLowerCase()
             .replace(/\s+/g, ' ')
@@ -967,42 +1000,6 @@ class DrillTrainer {
 
         const cleanInput = norm(cmd);
         let isMatch = task.correctAnswers.some(ans => norm(ans) === cleanInput);
-        let editorNotice = '';
-
-        // Умная диагностика текстовых редакторов: nano, vim, vi, mcedit
-        const editorMatch = cmd.match(/^(nano|vim|vi|mcedit)(\s+.*)?$/i);
-        if (editorMatch) {
-            const edTarget = (editorMatch[2] || '').trim();
-            // Извлекаем целевой файл из правильных ответов задачи
-            let targetFile = '';
-            for (const ans of task.correctAnswers) {
-                const fileMatch = ans.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
-                if (fileMatch) {
-                    targetFile = (fileMatch[1] || fileMatch[2] || '').trim();
-                    break;
-                }
-            }
-
-            if (targetFile) {
-                const normEdTarget = edTarget.toLowerCase().replace(/\/+$/, '');
-                const normTargetFile = targetFile.toLowerCase().replace(/\/+$/, '');
-                const targetBase = normTargetFile.split('/').pop();
-                const edBase = normEdTarget.split('/').pop();
-
-                if (normEdTarget === normTargetFile || (edBase && edBase === targetBase)) {
-                    isMatch = true;
-                    editorNotice = `Редактирование через <b>${editorMatch[1]}</b> — отличный и полностью правильный способ на экзамене! Внутри файла на реальном стенде заполняются требуемые параметры. Для быстрой записи в одну строку без входа в nano используется: <code>${this.escapeHtml(task.template || task.correctAnswers[0])}</code>`;
-                } else if (normEdTarget.endsWith('/option') && normTargetFile.endsWith('/options')) {
-                    editorNotice = `Опечатка в названии файла: вы ввели <b>option</b> (без буквы 's'). В ОС «Альт» файл называется строго <b>options</b> (во множественном числе)!`;
-                } else if (normEdTarget.includes('ipv4address') && normTargetFile.includes('options')) {
-                    editorNotice = `Не тот файл: <b>ipv4address</b> предназначен для IP-адреса, а в задании требуется настроить паспорт параметров <b>options</b>!`;
-                } else if (normEdTarget.includes('ipv4route') && normTargetFile.includes('options')) {
-                    editorNotice = `Не тот файл: <b>ipv4route</b> предназначен для шлюза по умолчанию, а в задании требуется настроить файл <b>options</b>!`;
-                } else if (edTarget) {
-                    editorNotice = `Вы указали файл <b>${this.escapeHtml(edTarget)}</b>, а в задании требуется файл <b>${this.escapeHtml(targetFile)}</b>.`;
-                }
-            }
-        }
 
         const prompt = task.prompt;
         const lineEcho = `<div class="term-line"><span class="prompt">${prompt}</span><span class="text-white">${this.escapeHtml(cmd)}</span></div>`;
@@ -1016,7 +1013,6 @@ class DrillTrainer {
             this.termOutput.innerHTML += `
                 ${lineEcho}
                 <div class="term-line text-green font-bold">✓ ВЕРНО! [ОТЛИЧНО]</div>
-                ${editorNotice ? `<div class="term-line text-yellow text-sm mt-1">💡 ${editorNotice}</div>` : ''}
                 <div class="term-line text-cyan text-sm mt-1">🧠 <b>Зачем на экзамене:</b> ${this.escapeHtml(task.why)}</div>
                 <div class="term-line mt-2">
                     <button class="btn btn-sm btn-success" onclick="window.drillTrainer.nextTask()">Следующая команда [Enter] →</button>
@@ -1036,10 +1032,176 @@ class DrillTrainer {
             this.termOutput.innerHTML += `
                 ${lineEcho}
                 <div class="term-line text-danger font-bold">✗ Ошибка в синтаксисе или параметрах команды.</div>
-                ${editorNotice ? `<div class="term-line text-yellow text-sm">💡 ${editorNotice}</div>` : '<div class="term-line text-muted text-sm">💡 Попробуйте ещё раз или изучите «Шаблон синтаксиса» выше.</div>'}
+                <div class="term-line text-muted text-sm">💡 Попробуйте ещё раз, откройте файл через <code>nano &lt;файл&gt;</code> или изучите «Шаблон синтаксиса» выше.</div>
             `;
             this.termOutput.scrollTop = this.termOutput.scrollHeight;
         }
+    }
+
+    handleEditorCommand(editorType, fileArg, task) {
+        if (!window.terminalEditor) return;
+
+        // Извлекаем целевой файл из правильных ответов задачи
+        let targetFile = '';
+        for (const ans of task.correctAnswers) {
+            const fileMatch = ans.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
+            if (fileMatch) {
+                targetFile = (fileMatch[1] || fileMatch[2] || '').trim();
+                break;
+            }
+            const edMatch = ans.match(/^(?:nano|vim|vi|mcedit|cat|touch)\s+([^\s;]+)/i);
+            if (edMatch) {
+                targetFile = edMatch[1].trim();
+                break;
+            }
+        }
+        if (!targetFile && task.template) {
+            const fileMatch = task.template.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
+            if (fileMatch) {
+                targetFile = (fileMatch[1] || fileMatch[2] || '').trim();
+            }
+        }
+
+        let resolvedPath = fileArg || targetFile || '/etc/net/ifaces/enp7s1/options';
+        let typoNotice = '';
+
+        // Проверка типичных опечаток
+        if (resolvedPath.endsWith('/option') && targetFile.endsWith('/options')) {
+            typoNotice = '⚠️ Замечена опечатка: вы указали <b>option</b> без буквы "s". В ОС «Альт» файл называется строго <b>options</b>! Открываем правильный документ options...';
+            resolvedPath = targetFile;
+        } else if (resolvedPath.includes('ipv4address') && targetFile.includes('options')) {
+            typoNotice = '⚠️ Внимание: <b>ipv4address</b> предназначен для IP-адреса, а в задании требуется настроить паспорт параметров <b>options</b>! Открываем документ options...';
+            resolvedPath = targetFile;
+        } else if (resolvedPath.includes('ipv4route') && targetFile.includes('options')) {
+            typoNotice = '⚠️ Внимание: <b>ipv4route</b> предназначен для маршрутов, а в задании требуется настроить файл <b>options</b>! Открываем документ options...';
+            resolvedPath = targetFile;
+        }
+
+        const prompt = task.prompt || 'root@node:~# ';
+        let outHtml = `<div class="term-line"><span class="prompt">${prompt}</span><span class="text-white">${this.escapeHtml(editorType + ' ' + (fileArg || resolvedPath))}</span></div>`;
+        if (typoNotice) {
+            outHtml += `<div class="term-line text-yellow text-sm">${typoNotice}</div>`;
+        }
+        this.termOutput.innerHTML += outHtml;
+        this.termOutput.scrollTop = this.termOutput.scrollHeight;
+
+        const container = document.querySelector('#sec-drill .terminal-window') || this.termOutput.parentElement;
+
+        // Начальное содержимое документа
+        let initialContent = window.standSimulator?.state[task.host]?.files[resolvedPath] || '';
+        if (!initialContent) {
+            const tpl = window.terminalEditor.getTemplateForFile(resolvedPath);
+            if (tpl) initialContent = tpl;
+        }
+
+        window.terminalEditor.open({
+            container: container,
+            type: editorType,
+            filepath: resolvedPath,
+            displayPath: fileArg || resolvedPath,
+            initialContent: initialContent,
+            onSave: (fp, content) => {
+                if (window.standSimulator && task.host) {
+                    if (!window.standSimulator.state[task.host]) window.standSimulator.state[task.host] = { files: {} };
+                    window.standSimulator.state[task.host].files[fp] = content;
+                    window.standSimulator.applyEtcNetConfigurations?.(window.standSimulator.state[task.host]);
+                    window.standSimulator.saveState();
+                }
+            },
+            onExit: (fp, content, wasSaved) => {
+                this.termInput?.focus();
+                if (wasSaved) {
+                    this.termOutput.innerHTML += `
+                        <div class="term-line sys-msg">
+                            <span class="text-cyan">[ Записано в файл ${this.escapeHtml(fp)} через ${editorType} ]</span>
+                        </div>
+                    `;
+                    const isSolved = this.checkTaskCompletionByContent(task, fp, content);
+                    if (isSolved) {
+                        this.completedTasks.add(task.id);
+                        localStorage.setItem('alt_drill_completed', JSON.stringify([...this.completedTasks]));
+                        this.streak++;
+                        this.updateStats();
+
+                        this.termOutput.innerHTML += `
+                            <div class="term-line text-green font-bold">✓ ВЕРНО! [ОТЛИЧНО] Документ успешно настроен и сохранён в ${this.escapeHtml(fp)}</div>
+                            <div class="term-line text-cyan text-sm mt-1">🧠 <b>Зачем на экзамене:</b> ${this.escapeHtml(task.why)}</div>
+                            <div class="term-line mt-2">
+                                <button class="btn btn-sm btn-success" onclick="window.drillTrainer.nextTask()">Следующая команда [Enter] →</button>
+                            </div>
+                        `;
+                        this.renderPills();
+                    } else {
+                        this.streak = 0;
+                        this.updateStats();
+                        this.termOutput.innerHTML += `
+                            <div class="term-line text-warning">⚠️ Файл сохранён, но требуемые параметры не обнаружены. Проверьте правильность строк в файле или используйте кнопку «⚡ Шаблон» внутри редактора.</div>
+                        `;
+                    }
+                    this.termOutput.scrollTop = this.termOutput.scrollHeight;
+                }
+            }
+        });
+    }
+
+    checkTaskCompletionByContent(task, filepath, content) {
+        if (!task) return false;
+        const normFp = (filepath || '').toLowerCase().replace(/\/+$/, '');
+        const cleanContent = (content || '').toLowerCase();
+
+        // 1. Проверяем соответствие файла
+        let targetFile = '';
+        for (const ans of task.correctAnswers) {
+            const m = ans.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
+            if (m) {
+                targetFile = (m[1] || m[2] || '').trim().toLowerCase();
+                break;
+            }
+            const edMatch = ans.match(/^(?:nano|vim|vi|mcedit|cat|touch)\s+([^\s;]+)/i);
+            if (edMatch) {
+                targetFile = edMatch[1].trim().toLowerCase();
+                break;
+            }
+        }
+        if (!targetFile && task.template) {
+            const m = task.template.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
+            if (m) {
+                targetFile = (m[1] || m[2] || '').trim().toLowerCase();
+            }
+        }
+
+        if (targetFile) {
+            const targetBase = targetFile.split('/').pop();
+            const fpBase = normFp.split('/').pop();
+            if (normFp !== targetFile && fpBase !== targetBase) {
+                return false;
+            }
+        }
+
+        // 2. Проверяем ключевые параметры задачи
+        if (cleanContent.includes('bootproto=static') && cleanContent.includes('type=eth')) {
+            return true;
+        }
+        if (cleanContent.includes('vid=100') && cleanContent.includes('type=vlan')) {
+            return true;
+        }
+        if (cleanContent.includes('type=iptun') && cleanContent.includes('tuntype=gre')) {
+            return true;
+        }
+        if (normFp.includes('resolv.conf') && cleanContent.includes('nameserver') && cleanContent.includes('127.0.0.1')) {
+            return true;
+        }
+
+        for (const ans of task.correctAnswers) {
+            const echoM = ans.match(/echo\s+(?:-e\s+)?['"]([^'"]+)['"]/);
+            if (echoM) {
+                const lines = echoM[1].toLowerCase().split(/\\n|\n/).map(l => l.trim().replace(/['"]/g, '')).filter(Boolean);
+                const allPresent = lines.every(l => cleanContent.includes(l));
+                if (allPresent) return true;
+            }
+        }
+
+        return false;
     }
 
     nextTask() {

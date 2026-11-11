@@ -3,11 +3,11 @@
 // Позволяет открывать, редактировать и сохранять документы прямо внутри терминала стенда!
 
 class TerminalTextEditor {
-        getTemplateForFile(filepath) {
+    getTemplateForFile(filepath) {
         const fp = filepath || '';
         // 1. GRE options
-        if (fp.includes('/gre1/options')) {
-            const curTask = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+        if (fp.includes('/gre1/options') || fp.includes('/tun0/options')) {
+            const curTask = (window.drillTrainer && window.drillTrainer.currentMode === 'interactive') ? window.drillTrainer.filteredTasks[window.drillTrainer.currentIndex] : (window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex]);
             const host = curTask?.host || 'hq-rtr';
             if (host === 'br-rtr') {
                 return 'TYPE=iptun\nTUNTYPE=gre\nTUNLOCAL=172.16.2.2\nTUNREMOTE=172.16.1.2\nTUNTTL=255\nTUNMTU=1476\n';
@@ -18,15 +18,25 @@ class TerminalTextEditor {
         if (fp.includes('resolv.conf')) {
             return 'nameserver 127.0.0.1\n';
         }
-        // 3. Авто-извлечение из текущего задания для любых других файлов
-        const cur = window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex];
+        // 3. options для интерфейсов (enp7s1, enp7s2.100, enp7s2.200)
+        if (fp.includes('options')) {
+            if (fp.includes('.100')) {
+                return 'TYPE=vlan\nHOST=enp7s2\nVID=100\nBOOTPROTO=static\n';
+            }
+            if (fp.includes('.200')) {
+                return 'TYPE=vlan\nHOST=enp7s2\nVID=200\nBOOTPROTO=static\n';
+            }
+            return 'BOOTPROTO=static\nTYPE=eth\n';
+        }
+        // 4. Авто-извлечение из текущего задания для любых других файлов
+        const cur = (window.drillTrainer && window.drillTrainer.currentMode === 'interactive') ? window.drillTrainer.filteredTasks[window.drillTrainer.currentIndex] : (window.terminalTrainer?.filteredTasks?.[window.terminalTrainer?.currentTaskIndex]);
         if (cur && cur.correctAnswers) {
             for (const a of cur.correctAnswers) {
-                const m = a.match(/echo\s+['"]?([^'">]+)['"]?\s*>\s*([^\s;]+)/);
+                const m = a.match(/echo\s+(?:-e\s+)?['"]?([^'">]+)['"]?\s*>\s*([^\s;]+)/);
                 if (m) {
                     const targetFile = m[2].trim();
                     if (fp.endsWith(targetFile.split('/').pop())) {
-                        return m[1].trim() + '\n';
+                        return m[1].replace(/\\n/g, '\n').trim() + '\n';
                     }
                 }
             }
