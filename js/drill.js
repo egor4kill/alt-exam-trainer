@@ -115,7 +115,10 @@ const DRILL_COMMANDS = [
         correctAnswers: [
             "echo -e 'BOOTPROTO=static\\nTYPE=eth' > /etc/net/ifaces/enp7s1/options",
             "echo -e \"BOOTPROTO=static\\nTYPE=eth\" > /etc/net/ifaces/enp7s1/options",
-            "printf 'BOOTPROTO=static\\nTYPE=eth\\n' > /etc/net/ifaces/enp7s1/options"
+            "printf 'BOOTPROTO=static\\nTYPE=eth\\n' > /etc/net/ifaces/enp7s1/options",
+            "nano /etc/net/ifaces/enp7s1/options",
+            "vim /etc/net/ifaces/enp7s1/options",
+            "mcedit /etc/net/ifaces/enp7s1/options"
         ],
         template: "echo -e 'BOOTPROTO=static\\nTYPE=eth' > /etc/net/ifaces/enp7s1/options",
         hint: "Используйте echo -e с переводом строки \\n между параметрами.",
@@ -963,7 +966,43 @@ class DrillTrainer {
             .trim();
 
         const cleanInput = norm(cmd);
-        const isMatch = task.correctAnswers.some(ans => norm(ans) === cleanInput);
+        let isMatch = task.correctAnswers.some(ans => norm(ans) === cleanInput);
+        let editorNotice = '';
+
+        // Умная диагностика текстовых редакторов: nano, vim, vi, mcedit
+        const editorMatch = cmd.match(/^(nano|vim|vi|mcedit)(\s+.*)?$/i);
+        if (editorMatch) {
+            const edTarget = (editorMatch[2] || '').trim();
+            // Извлекаем целевой файл из правильных ответов задачи
+            let targetFile = '';
+            for (const ans of task.correctAnswers) {
+                const fileMatch = ans.match(/>>\s*([^\s;]+)|>\s*([^\s;]+)/);
+                if (fileMatch) {
+                    targetFile = (fileMatch[1] || fileMatch[2] || '').trim();
+                    break;
+                }
+            }
+
+            if (targetFile) {
+                const normEdTarget = edTarget.toLowerCase().replace(/\/+$/, '');
+                const normTargetFile = targetFile.toLowerCase().replace(/\/+$/, '');
+                const targetBase = normTargetFile.split('/').pop();
+                const edBase = normEdTarget.split('/').pop();
+
+                if (normEdTarget === normTargetFile || (edBase && edBase === targetBase)) {
+                    isMatch = true;
+                    editorNotice = `Редактирование через <b>${editorMatch[1]}</b> — отличный и полностью правильный способ на экзамене! Внутри файла на реальном стенде заполняются требуемые параметры. Для быстрой записи в одну строку без входа в nano используется: <code>${this.escapeHtml(task.template || task.correctAnswers[0])}</code>`;
+                } else if (normEdTarget.endsWith('/option') && normTargetFile.endsWith('/options')) {
+                    editorNotice = `Опечатка в названии файла: вы ввели <b>option</b> (без буквы 's'). В ОС «Альт» файл называется строго <b>options</b> (во множественном числе)!`;
+                } else if (normEdTarget.includes('ipv4address') && normTargetFile.includes('options')) {
+                    editorNotice = `Не тот файл: <b>ipv4address</b> предназначен для IP-адреса, а в задании требуется настроить паспорт параметров <b>options</b>!`;
+                } else if (normEdTarget.includes('ipv4route') && normTargetFile.includes('options')) {
+                    editorNotice = `Не тот файл: <b>ipv4route</b> предназначен для шлюза по умолчанию, а в задании требуется настроить файл <b>options</b>!`;
+                } else if (edTarget) {
+                    editorNotice = `Вы указали файл <b>${this.escapeHtml(edTarget)}</b>, а в задании требуется файл <b>${this.escapeHtml(targetFile)}</b>.`;
+                }
+            }
+        }
 
         const prompt = task.prompt;
         const lineEcho = `<div class="term-line"><span class="prompt">${prompt}</span><span class="text-white">${this.escapeHtml(cmd)}</span></div>`;
@@ -977,6 +1016,7 @@ class DrillTrainer {
             this.termOutput.innerHTML += `
                 ${lineEcho}
                 <div class="term-line text-green font-bold">✓ ВЕРНО! [ОТЛИЧНО]</div>
+                ${editorNotice ? `<div class="term-line text-yellow text-sm mt-1">💡 ${editorNotice}</div>` : ''}
                 <div class="term-line text-cyan text-sm mt-1">🧠 <b>Зачем на экзамене:</b> ${this.escapeHtml(task.why)}</div>
                 <div class="term-line mt-2">
                     <button class="btn btn-sm btn-success" onclick="window.drillTrainer.nextTask()">Следующая команда [Enter] →</button>
@@ -996,7 +1036,7 @@ class DrillTrainer {
             this.termOutput.innerHTML += `
                 ${lineEcho}
                 <div class="term-line text-danger font-bold">✗ Ошибка в синтаксисе или параметрах команды.</div>
-                <div class="term-line text-muted text-sm">💡 Попробуйте ещё раз или нажмите «Шаблон / Ответ» выше.</div>
+                ${editorNotice ? `<div class="term-line text-yellow text-sm">💡 ${editorNotice}</div>` : '<div class="term-line text-muted text-sm">💡 Попробуйте ещё раз или изучите «Шаблон синтаксиса» выше.</div>'}
             `;
             this.termOutput.scrollTop = this.termOutput.scrollHeight;
         }
